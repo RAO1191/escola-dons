@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Admin — Escola de Dons</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g1:#E1D91E;--g2:#00B9AD;
+  --grad:linear-gradient(90deg,#E1D91E,#00B9AD);
+  --black:#080808;--black2:#101010;--black3:#161616;
+  --white:#FFFFFF;--w80:rgba(255,255,255,0.80);--w50:rgba(255,255,255,0.50);
+  --w20:rgba(255,255,255,0.20);--w10:rgba(255,255,255,0.10);
+  --w06:rgba(255,255,255,0.06);--w03:rgba(255,255,255,0.03);
+  --border:rgba(255,255,255,0.10);
+  --green:#22C55E;--green-dim:rgba(34,197,94,0.12);
+  --red:#EF4444;--red-dim:rgba(239,68,68,0.10);
+  --blue:#3B82F6;
+}
+html,body{height:100%}
+body{background:var(--black);color:var(--white);font-family:'Inter',sans-serif;font-size:15px}
+
+/* LOGIN */
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px;background:var(--black)}
+.login-card{background:var(--black2);border:1px solid var(--border);border-radius:20px;padding:40px 32px;width:100%;max-width:340px;text-align:center}
+.login-logo{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:.05em;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.login-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.05em;margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--w50);margin-bottom:28px}
+.login-card input{width:100%;background:var(--w06);border:1px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--white);font-family:'Inter',sans-serif;font-size:15px;outline:none;transition:border-color .2s;margin-bottom:12px;-webkit-appearance:none;text-align:center}
+.login-card input:focus{border-color:var(--g2);box-shadow:0 0 0 3px rgba(0,185,173,.1)}
+.login-err{font-size:13px;color:var(--red);margin-bottom:12px;display:none}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .2s;touch-action:manipulation;white-space:nowrap}
+.btn-full{width:100%}
+.btn-grad{background:var(--grad);color:#000;box-shadow:0 4px 16px rgba(0,185,173,.2)}
+.btn-grad:hover{opacity:.9;transform:translateY(-1px)}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{opacity:.9}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--w50)}
+.btn-outline:hover{border-color:var(--g2);color:var(--g2)}
+.btn-sm{padding:7px 13px;font-size:12px}
+.btn-red{background:transparent;border:1px solid rgba(239,68,68,.3);color:var(--red)}
+.btn-red:hover{background:var(--red-dim)}
+.btn-ghost{background:transparent;color:var(--w50)}
+.btn-ghost:hover{color:var(--g2)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+
+/* LAYOUT */
+#admin{display:none;min-height:100vh;flex-direction:column}
+#admin.show{display:flex}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(8,8,8,.97);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 16px}
+.topbar-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;height:54px;gap:12px}
+.topbar-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;flex:1}
+.topbar-title span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.atabs{border-bottom:1px solid var(--border);background:var(--black2);padding:0 16px;display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.atab-btn{background:none;border:none;border-bottom:2px solid transparent;color:var(--w50);cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;padding:13px 16px;margin-bottom:-1px;transition:all .2s;white-space:nowrap}
+.atab-btn.active{color:var(--g2);border-bottom-color:var(--g2)}
+.atab-btn:hover:not(.active){color:var(--w80)}
+.amain{flex:1;padding:0 16px 80px}
+.acontent{max-width:1100px;margin:0 auto}
+.atab{display:none}.atab.active{display:block}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:22px 0}
+.stat-card{background:var(--black2);border:1px solid var(--border);border-radius:14px;padding:18px}
+.stat-label{font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--w50);margin-bottom:8px}
+.stat-value{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:.03em;line-height:1;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-sub{font-size:12px;color:var(--w50);margin-top:4px}
+
+/* SECTION */
+.sec-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:22px 0 13px}
+.sec-h2{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.04em}
+
+/* DONS */
+.dons-chart{background:var(--black2);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:18px}
+.don-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.don-row:last-child{border-bottom:none}
+.don-letter{font-family:'Bebas Neue',sans-serif;font-size:22px;min-width:26px;text-align:center;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.don-name{flex:1;font-size:13px;color:var(--w80);min-width:0}
+.don-count{font-size:13px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;min-width:28px;text-align:right}
+.don-bar-wrap{width:110px;height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;flex-shrink:0}
+.don-bar{height:100%;background:var(--grad);border-radius:3px;transition:width .5s ease}
+
+/* PEOPLE */
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:13px;align-items:center}
+.search-inp{flex:1;min-width:160px;background:var(--w06);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--white);font-family:'Inter',sans-serif;font-size:14px;outline:none;transition:border-color .2s;-webkit-appearance:none}
+.search-inp:focus{border-color:var(--g2)}
+.search-inp::placeholder{color:rgba(255,255,255,.22)}
+.filter-sel{background:var(--w06);border:1px solid var(--border);border-radius:10px;padding:10px 13px;color:var(--w50);font-family:'Inter',sans-serif;font-size:13px;outline:none;cursor:pointer;-webkit-appearance:none}
+.people-list{display:flex;flex-direction:column;gap:8px}
+.pcard{background:var(--black2);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:border-color .2s}
+.pcard.sel{border-color:rgba(0,185,173,.4)}
+.pcard-head{display:flex;align-items:center;gap:11px;padding:13px 15px;cursor:pointer}
+.pcheck{width:20px;height:20px;border-radius:5px;border:1.5px solid var(--border);background:var(--w06);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;transition:all .15s}
+.pcheck.on{background:var(--grad);border-color:transparent;color:#000;font-weight:700}
+.pinfo{flex:1;min-width:0}
+.pname{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pphone{font-size:12px;color:var(--w50);margin-top:1px}
+.pmeta{display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.code-chip{font-size:11px;font-weight:700;letter-spacing:.1em;color:#000;background:var(--grad);border-radius:5px;padding:3px 9px}
+.chip{font-size:10px;font-weight:600;border-radius:20px;padding:3px 9px}
+.chip-done{background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.chip-partial{background:rgba(225,217,30,.1);color:var(--g1);border:1px solid rgba(225,217,30,.25)}
+.chip-empty{background:var(--w06);color:var(--w50);border:1px solid var(--border)}
+.chip-released{background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.3)}
+.pcard-body{padding:0 15px 15px;border-top:1px solid var(--border);display:none}
+.pcard-body.open{display:block}
+.pgifts{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;margin-bottom:9px}
+.gc{display:flex;align-items:center;gap:5px;background:var(--w06);border:1px solid var(--border);border-radius:7px;padding:5px 10px;font-size:12px}
+.gc-r{font-size:11px;color:var(--w50)}
+.gc-l{font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.gc-n{color:var(--w50)}
+.pactions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.pmini{display:flex;gap:12px;font-size:12px;color:var(--w50);margin-top:11px;padding-top:9px;border-top:1px solid var(--border)}
+
+/* BULK BAR */
+.bulk-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(8,8,8,.97);backdrop-filter:blur(16px);border-top:1px solid var(--border);padding:13px 16px;display:none;z-index:50}
+.bulk-bar.show{display:block}
+.bulk-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.bulk-info{font-size:13px;color:var(--w50);flex:1}
+.bulk-info strong{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* UPLOAD SECTION */
+.upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+@media(max-width:500px){.upload-grid{grid-template-columns:1fr}}
+.upload-card{background:var(--black2);border:1px solid var(--border);border-radius:14px;padding:18px}
+.upload-card h3{font-size:13px;font-weight:600;margin-bottom:4px}
+.upload-card p{font-size:12px;color:var(--w50);margin-bottom:14px;line-height:1.5}
+.upload-preview{width:100%;height:120px;border-radius:10px;background:var(--w06);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:12px;overflow:hidden;position:relative;transition:border-color .2s}
+.upload-preview:hover{border-color:var(--g2)}
+.upload-preview img{width:100%;height:100%;object-fit:contain;display:none}
+.upload-preview .up-hint{font-size:12px;color:var(--w20);text-align:center;padding:8px}
+.upload-input{display:none}
+.upload-label{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:10px;border-radius:8px;background:var(--w06);border:1px solid var(--border);font-size:13px;font-weight:500;color:var(--w80);cursor:pointer;transition:all .2s}
+.upload-label:hover{border-color:var(--g2);color:var(--g2)}
+.upload-status{font-size:12px;color:var(--g2);margin-top:8px;text-align:center;display:none}
+.config-card{background:var(--black2);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px}
+.config-card h3{font-size:14px;font-weight:600;margin-bottom:4px}
+.config-card p{font-size:12px;color:var(--w50);margin-bottom:14px}
+.config-field{margin-bottom:12px}
+.config-field label{display:block;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--w50);margin-bottom:6px}
+.config-field input{width:100%;background:var(--w06);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--white);font-family:'Inter',sans-serif;font-size:14px;outline:none;transition:border-color .2s;-webkit-appearance:none}
+.config-field input:focus{border-color:var(--g2);box-shadow:0 0 0 3px rgba(0,185,173,.1)}
+
+/* MODAL */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.modal-ov.open{display:flex}
+.modal{background:var(--black2);border:1px solid var(--border);border-radius:16px;width:100%;max-width:370px;animation:mIn .22s ease}
+@keyframes mIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.modal-head{padding:22px 22px 14px;border-bottom:1px solid var(--border)}
+.modal-head h3{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.04em}
+.modal-head p{font-size:13px;color:var(--w50);margin-top:5px;line-height:1.5}
+.modal-foot{padding:16px 22px 22px;display:flex;gap:10px}
+.modal-foot .btn{flex:1}
+
+/* TOAST */
+.toast{position:fixed;bottom:72px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--black2);border:1px solid var(--border);border-radius:10px;padding:12px 20px;font-size:13px;color:var(--white);z-index:600;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* AUDIT MODAL */
+.modal-lg{max-width:720px;max-height:90vh;overflow-y:auto}
+.audit-section{margin-bottom:20px}
+.audit-section-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.audit-table{width:100%;border-collapse:collapse;font-size:13px}
+.audit-table th{text-align:left;padding:7px 10px;font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--w50);border-bottom:1px solid var(--border)}
+.audit-table td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+.audit-table tr:last-child td{border-bottom:none}
+.audit-table tr.top1 td{background:rgba(225,217,30,.06)}
+.audit-table tr.top2 td{background:rgba(0,185,173,.05)}
+.audit-table tr.top3 td{background:rgba(0,185,173,.03)}
+.audit-letter{font-family:'Bebas Neue',sans-serif;font-size:18px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.audit-rank{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--w20)}
+.audit-pts{font-weight:700;color:var(--g2)}
+.audit-bar-wrap{width:80px;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.audit-bar{height:100%;background:var(--grad);border-radius:2px}
+.audit-summary{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.audit-chip{background:var(--w06);border:1px solid var(--border);border-radius:10px;padding:10px 14px;text-align:center;flex:1;min-width:80px}
+.audit-chip-rank{font-size:10px;color:var(--w50);margin-bottom:3px}
+.audit-chip-letter{font-family:'Bebas Neue',sans-serif;font-size:28px;line-height:1;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.audit-chip-name{font-size:10px;color:var(--w50);margin-top:3px;line-height:1.3}
+.audit-chip-pts{font-size:11px;font-weight:700;color:var(--g2);margin-top:2px}
+
+/* SPINNER */
+.spinner-lg{width:36px;height:36px;border:3px solid rgba(255,255,255,.08);border-top-color:var(--g2);border-radius:50%;animation:sp .7s linear infinite}
+.spinner{width:14px;height:14px;border:2px solid rgba(0,0,0,.25);border-top-color:#000;border-radius:50%;animation:sp .7s linear infinite}
+.spinner-w{width:14px;height:14px;border:2px solid rgba(255,255,255,.2);border-top-color:var(--white);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.loading-row{display:flex;align-items:center;gap:12px;padding:24px 0;color:var(--w50);font-size:14px}
+
+@media(max-width:480px){
+  .don-bar-wrap{width:60px}.don-name{font-size:12px}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .pmeta{flex-direction:column;align-items:flex-end;gap:3px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-page" id="login-page">
+  <div class="login-card">
+    <div class="login-logo">Escola de Dons</div>
+    <div class="login-title">Painel Administrativo</div>
+    <div class="login-sub">Comunidade Evangélica Graça &amp; Paz</div>
+    <input type="password" id="login-pass" placeholder="Senha de acesso" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="login-err" id="login-err">Senha incorreta. Tente novamente.</div>
+    <button class="btn btn-grad btn-full" id="btn-login" onclick="doLogin()">Entrar</button>
+    <div style="margin-top:16px"><a href="index.html" style="font-size:12px;color:var(--w20);text-decoration:none">← Voltar ao início</a></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <span class="topbar-title">Escola de <span>Dons</span> — Admin</span>
+      <button class="btn btn-outline btn-sm" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+  <div class="atabs">
+    <button class="atab-btn active" data-tab="overview" onclick="showTab('overview')">Visão Geral</button>
+    <button class="atab-btn" data-tab="people" onclick="showTab('people')">Pessoas</button>
+    <button class="atab-btn" data-tab="dons" onclick="showTab('dons')">Dons</button>
+    <button class="atab-btn" data-tab="settings" onclick="showTab('settings')">⚙ Configurações</button>
+  </div>
+  <div class="amain">
+    <div class="acontent">
+
+      <!-- OVERVIEW -->
+      <div class="atab active" id="atab-overview">
+        <div class="stats-grid" id="stats-grid"><div class="loading-row"><div class="spinner-lg"></div> Carregando...</div></div>
+        <div class="sec-row"><h2 class="sec-h2">Ações Rápidas</h2></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:26px">
+          <button class="btn btn-grad" onclick="bulkSelectAll()">☑ Selecionar todos completos</button>
+          <button class="btn btn-green" onclick="openReleaseModal()">🔓 Liberar selecionados</button>
+          <button class="btn btn-outline" onclick="showTab('people')">Ver pessoas →</button>
+        </div>
+        <div class="sec-row"><h2 class="sec-h2">Top Dons Identificados</h2></div>
+        <div id="overview-dons"></div>
+      </div>
+
+      <!-- PEOPLE -->
+      <div class="atab" id="atab-people">
+        <div class="sec-row">
+          <h2 class="sec-h2">Pessoas Cadastradas</h2>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-outline btn-sm" onclick="bulkSelectAll()">Sel. completos</button>
+            <button class="btn btn-green btn-sm" onclick="openReleaseModal()">🔓 Liberar</button>
+            <button class="btn btn-outline btn-sm" onclick="loadPeople()">↻</button>
+          </div>
+        </div>
+        <div class="toolbar">
+          <input class="search-inp" id="search" placeholder="🔍 Buscar por nome ou código..." oninput="renderPeople()">
+          <select class="filter-sel" id="filter" onchange="renderPeople()">
+            <option value="">Todos</option>
+            <option value="complete">Completos</option>
+            <option value="partial">Parciais</option>
+            <option value="empty">Sem respostas</option>
+            <option value="released">Liberados</option>
+            <option value="pending">Pendentes</option>
+          </select>
+        </div>
+        <div class="people-list" id="people-list"><div class="loading-row"><div class="spinner-lg"></div> Carregando...</div></div>
+      </div>
+
+      <!-- DONS -->
+      <div class="atab" id="atab-dons">
+        <div class="sec-row"><h2 class="sec-h2">Quantitativo por Dons</h2></div>
+        <p style="font-size:13px;color:var(--w50);margin-bottom:18px">Pessoas com cada dom no Top 3 combinado (Alfa + Ômega).</p>
+        <div id="full-dons"></div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="atab" id="atab-settings">
+        <div class="sec-row"><h2 class="sec-h2">Configurações do Site</h2></div>
+
+        <!-- IMAGES -->
+        <div class="upload-grid">
+          <!-- LOGO -->
+          <div class="upload-card">
+            <h3>🖼 Logo da Igreja</h3>
+            <p>Aparece no topo da página de cadastro.</p>
+            <div class="upload-preview" id="prev-logo">
+              <img id="prev-logo-img" src="" alt="Logo">
+              <div class="up-hint">Nenhuma imagem<br>carregada</div>
+            </div>
+            <label class="upload-label">
+              📁 Escolher arquivo
+              <input type="file" class="upload-input" id="file-logo" accept="image/*" onchange="previewImage('logo',this)">
+            </label>
+            <div class="upload-status" id="status-logo">✓ Salvo com sucesso!</div>
+            <button class="btn btn-grad btn-full" style="margin-top:10px" onclick="uploadImage('logo')" id="btn-upload-logo">Enviar Logo</button>
+          </div>
+          <!-- BACKGROUND -->
+          <div class="upload-card">
+            <h3>🌄 Imagem de Fundo</h3>
+            <p>Aparece como fundo da página de cadastro.</p>
+            <div class="upload-preview" id="prev-bg">
+              <img id="prev-bg-img" src="" alt="Fundo" style="object-fit:cover!important">
+              <div class="up-hint">Nenhuma imagem<br>carregada</div>
+            </div>
+            <label class="upload-label">
+              📁 Escolher arquivo
+              <input type="file" class="upload-input" id="file-bg" accept="image/*" onchange="previewImage('bg',this)">
+            </label>
+            <div class="upload-status" id="status-bg">✓ Salvo com sucesso!</div>
+            <button class="btn btn-grad btn-full" style="margin-top:10px" onclick="uploadImage('bg')" id="btn-upload-bg">Enviar Fundo</button>
+          </div>
+        </div>
+
+        <!-- CONFIG -->
+        <div class="config-card">
+          <h3>📝 Informações da Igreja</h3>
+          <p>Atualize o nome exibido no site.</p>
+          <div class="config-field">
+            <label>Nome da Igreja</label>
+            <input id="inp-church-name" placeholder="Ex: Comunidade Evangélica Graça & Paz">
+          </div>
+          <button class="btn btn-grad" id="btn-save-config" onclick="saveConfig()">Salvar Configurações</button>
+        </div>
+
+        <!-- CHANGE PASSWORD -->
+        <div class="config-card">
+          <h3>🔐 Alterar Senha Admin</h3>
+          <p>Altere a senha de acesso ao painel administrativo.</p>
+          <div class="config-field">
+            <label>Nova Senha</label>
+            <input type="password" id="inp-new-pass" placeholder="Nova senha">
+          </div>
+          <div class="config-field">
+            <label>Confirmar Senha</label>
+            <input type="password" id="inp-confirm-pass" placeholder="Confirme a nova senha">
+          </div>
+          <button class="btn btn-outline" onclick="changePass()">Alterar Senha</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BULK BAR -->
+  <div class="bulk-bar" id="bulk-bar">
+    <div class="bulk-inner">
+      <span class="bulk-info"><strong id="bulk-count">0</strong> selecionada(s)</span>
+      <button class="btn btn-green btn-sm" onclick="openReleaseModal()">🔓 Liberar</button>
+      <button class="btn btn-outline btn-sm" onclick="lockSelected()">🔒 Bloquear</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearSel()">✕</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-ov" id="modal-release">
+  <div class="modal">
+    <div class="modal-head"><h3>Liberar Resultado</h3><p id="modal-release-msg">Confirma?</p></div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModals()">Cancelar</button>
+      <button class="btn btn-green" id="btn-confirm-release" onclick="confirmRelease()">🔓 Confirmar</button>
+    </div>
+  </div>
+</div>
+<div class="modal-ov" id="modal-delete">
+  <div class="modal">
+    <div class="modal-head"><h3>Remover Cadastro</h3><p id="modal-delete-msg">Esta ação é irreversível.</p></div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModals()">Cancelar</button>
+      <button class="btn btn-red" id="btn-confirm-delete" onclick="confirmDelete()">Remover</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- AUDIT MODAL -->
+<div class="modal-ov" id="modal-audit">
+  <div class="modal modal-lg">
+    <div class="modal-head" style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <h3 id="audit-name">Auditoria</h3>
+        <p id="audit-sub">Pontuação detalhada por letra</p>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModals()" style="font-size:20px;padding:4px 10px">✕</button>
+    </div>
+    <div style="padding:18px 22px 22px" id="audit-content">
+      <div class="loading-row"><div class="spinner-lg"></div> Carregando...</div>
+    </div>
+  </div>
+</div>
+
+<script src="config.js?v=1772024301"></script>
+<script src="data.js?v=1772024301"></script>
+<script>
+let adminPass = null, allUsers = [], selected = new Set(), deleteTarget = null;
+
+// ─── AUTH ─────────────────────────────────────────────────────
+async function doLogin() {
+  const pass = document.getElementById('login-pass').value;
+  if (!pass) return;
+  const btn = document.getElementById('btn-login');
+  btn.disabled=true; btn.innerHTML='<div class="spinner"></div> Verificando...';
+  try {
+    const res = await API.get({ action: 'getStats', senha: pass });
+    if (!res.ok) {
+      document.getElementById('login-err').style.display = 'block';
+    } else {
+      adminPass = pass;
+      sessionStorage.setItem('ed_admin_pass', pass);
+      document.getElementById('login-page').style.display = 'none';
+      document.getElementById('admin').classList.add('show');
+      renderStats(res);
+      renderDons(res.donCount, 'overview-dons', false);
+      loadPeople();
+      loadCurrentConfig();
+    }
+  } catch(e) {
+    document.getElementById('login-err').textContent = 'Erro de conexão.';
+    document.getElementById('login-err').style.display = 'block';
+  } finally { btn.disabled=false; btn.innerHTML='Entrar'; }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('ed_admin_pass');
+  adminPass=null;
+  document.getElementById('login-page').style.display='flex';
+  document.getElementById('admin').classList.remove('show');
+  document.getElementById('login-pass').value='';
+  document.getElementById('login-err').style.display='none';
+}
+
+// ─── TABS ─────────────────────────────────────────────────────
+function showTab(name) {
+  document.querySelectorAll('.atab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
+  document.querySelectorAll('.atab').forEach(p=>p.classList.toggle('active',p.id==='atab-'+name));
+  if(name==='people') renderPeople();
+  if(name==='dons') loadFullDons();
+  if(name==='overview') refreshOverview();
+}
+
+// ─── STATS ────────────────────────────────────────────────────
+function renderStats(data) {
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Cadastrados</div><div class="stat-value">${data.total}</div><div class="stat-sub">total de pessoas</div></div>
+    <div class="stat-card"><div class="stat-label">Completos</div><div class="stat-value">${data.completos}</div><div class="stat-sub">responderam tudo</div></div>
+    <div class="stat-card"><div class="stat-label">Parciais</div><div class="stat-value">${data.parciais}</div><div class="stat-sub">em andamento</div></div>
+    <div class="stat-card"><div class="stat-label">Liberados</div><div class="stat-value">${data.liberados}</div><div class="stat-sub">resultado liberado</div></div>`;
+}
+
+async function refreshOverview() {
+  try {
+    const res = await API.get({ action:'getStats', senha:adminPass });
+    if(res.ok){ renderStats(res); renderDons(res.donCount,'overview-dons',false); }
+  } catch(e){}
+}
+
+// ─── DONS ─────────────────────────────────────────────────────
+function renderDons(donCount, cid, full) {
+  const sorted = Object.entries(donCount||{}).sort((a,b)=>b[1]-a[1]);
+  const list = full ? sorted : sorted.slice(0,8), max = sorted[0]?.[1]||1;
+  const el = document.getElementById(cid);
+  if(!list.length){el.innerHTML='<p style="color:var(--w50);font-size:14px;padding:18px 0">Nenhuma resposta ainda.</p>';return}
+  el.innerHTML=`<div class="dons-chart">${list.map(([l,n])=>`
+    <div class="don-row">
+      <span class="don-letter">${l}</span>
+      <span class="don-name">${DON_NAMES[l]||l}</span>
+      <div class="don-bar-wrap"><div class="don-bar" style="width:${Math.round(n/max*100)}%"></div></div>
+      <span class="don-count">${n}</span>
+    </div>`).join('')}</div>`;
+}
+
+async function loadFullDons() {
+  document.getElementById('full-dons').innerHTML='<div class="loading-row"><div class="spinner-lg"></div> Carregando...</div>';
+  try{
+    const res=await API.get({action:'getStats',senha:adminPass});
+    if(res.ok) renderDons(res.donCount,'full-dons',true);
+  }catch(e){document.getElementById('full-dons').innerHTML='<p style="color:var(--red);font-size:14px">Erro ao carregar.</p>';}
+}
+
+// ─── PEOPLE ───────────────────────────────────────────────────
+async function loadPeople() {
+  document.getElementById('people-list').innerHTML='<div class="loading-row"><div class="spinner-lg"></div> Carregando pessoas...</div>';
+  try{
+    const res=await API.get({action:'getAllUsers',senha:adminPass});
+    if(!res.ok){showToast('Erro: '+res.error);return}
+    allUsers=res.users; renderPeople();
+  }catch(e){document.getElementById('people-list').innerHTML='<p style="color:var(--red);font-size:14px;padding:18px 0">Erro de conexão.</p>';}
+}
+
+function getStatus(u){
+  const a=parseInt(u.alfaRespondidas)||0,o=parseInt(u.omegaRespondidas)||0;
+  if(a>=110&&o>=125)return'complete';if(a>0||o>0)return'partial';return'empty';
+}
+
+function renderPeople(){
+  const search=(document.getElementById('search')?.value||'').toLowerCase();
+  const filter=document.getElementById('filter')?.value||'';
+  let list=allUsers.filter(u=>{
+    if(search&&!u.nome.toLowerCase().includes(search)&&!u.code.toLowerCase().includes(search))return false;
+    if(filter==='complete'&&getStatus(u)!=='complete')return false;
+    if(filter==='partial'&&getStatus(u)!=='partial')return false;
+    if(filter==='empty'&&getStatus(u)!=='empty')return false;
+    if(filter==='released'&&!u.resultadoLiberado)return false;
+    if(filter==='pending'&&u.resultadoLiberado)return false;
+    return true;
+  }).sort((a,b)=>{const o=s=>s==='complete'?0:s==='partial'?1:2;return o(getStatus(a))-o(getStatus(b))});
+  const el=document.getElementById('people-list');
+  if(!list.length){el.innerHTML='<p style="color:var(--w50);font-size:14px;padding:18px 0">Nenhuma pessoa encontrada.</p>';return}
+  el.innerHTML=list.map(u=>personCard(u)).join('');
+  updateBulkBar();
+}
+
+function personCard(u){
+  const st=getStatus(u),isSel=selected.has(u.code);
+  const sChip=st==='complete'?`<span class="chip chip-done">Completo</span>`:st==='partial'?`<span class="chip chip-partial">Parcial</span>`:`<span class="chip chip-empty">Vazio</span>`;
+  const rBadge=u.resultadoLiberado?`<span class="chip chip-released">Liberado</span>`:'';
+  const gifts=[u.don1,u.don2,u.don3].filter(Boolean);
+  const gChips=gifts.map((l,i)=>`<div class="gc"><span class="gc-r">${i+1}º</span><span class="gc-l">${l}</span><span class="gc-n">${DON_NAMES[l]||l}</span></div>`).join('');
+  const date=u.dataCadastro?u.dataCadastro.split(',')[0]:'—';
+  return `<div class="pcard${isSel?' sel':''}" id="pc-${u.code}">
+    <div class="pcard-head" onclick="toggleExpand('${u.code}')">
+      <div class="pcheck${isSel?' on':''}" id="pchk-${u.code}" onclick="event.stopPropagation();toggleSel('${u.code}')">${isSel?'✓':''}</div>
+      <div class="pinfo"><div class="pname">${u.nome}</div><div class="pphone">${u.telefone} · ${date}</div></div>
+      <div class="pmeta"><span class="code-chip">${u.code}</span>${sChip}${rBadge}</div>
+    </div>
+    <div class="pcard-body" id="pb-${u.code}">
+      <div class="pmini"><span>Alfa: ${u.alfaRespondidas||0}/110</span><span>Ômega: ${u.omegaRespondidas||0}/125</span></div>
+      ${gifts.length?`<div class="pgifts">${gChips}</div>`:'<p style="font-size:13px;color:var(--w50);margin-top:12px">Sem respostas suficientes.</p>'}
+      <div class="pactions">
+        ${!u.resultadoLiberado
+          ?`<button class="btn btn-green btn-sm" onclick="releaseOne('${u.code}')">🔓 Liberar resultado</button>`
+          :`<button class="btn btn-outline btn-sm" onclick="lockOne('${u.code}')">🔒 Bloquear resultado</button>`}
+        <button class="btn btn-outline btn-sm" onclick="window.open('form.html?code=${u.code}','_blank')">📋 Ver formulário</button>
+        <button class="btn btn-outline btn-sm" onclick="openAudit('${u.code}')">📊 Auditar</button>
+        <button class="btn btn-red btn-sm" onclick="openDelete('${u.code}')">✕ Remover</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleExpand(code){document.getElementById('pb-'+code)?.classList.toggle('open')}
+function toggleSel(code){
+  if(selected.has(code))selected.delete(code);else selected.add(code);
+  const chk=document.getElementById('pchk-'+code),card=document.getElementById('pc-'+code);
+  if(chk){chk.classList.toggle('on',selected.has(code));chk.textContent=selected.has(code)?'✓':''}
+  if(card)card.classList.toggle('sel',selected.has(code));
+  updateBulkBar();
+}
+function updateBulkBar(){
+  document.getElementById('bulk-bar').classList.toggle('show',selected.size>0);
+  document.getElementById('bulk-count').textContent=selected.size;
+}
+function clearSel(){selected.clear();renderPeople()}
+function bulkSelectAll(){
+  allUsers.filter(u=>getStatus(u)==='complete').forEach(u=>selected.add(u.code));
+  renderPeople();showToast(`${selected.size} pessoas selecionadas.`);
+}
+
+// ─── RELEASE ──────────────────────────────────────────────────
+function openReleaseModal(){
+  if(selected.size===0){showToast('Selecione pelo menos uma pessoa.');return}
+  document.getElementById('modal-release-msg').textContent=`Liberar resultados para ${selected.size} pessoa(s)?`;
+  document.getElementById('modal-release').classList.add('open');
+}
+async function confirmRelease(){
+  const btn=document.getElementById('btn-confirm-release');
+  btn.disabled=true;btn.innerHTML='<div class="spinner"></div>';
+  try{
+    const codes=[...selected];
+    const res=await API.post({action:'releaseMany',senha:adminPass,codes});
+    if(res.ok){
+      showToast(`✓ Liberados para ${codes.length} pessoa(s).`);
+      codes.forEach(c=>{const u=allUsers.find(x=>x.code===c);if(u)u.resultadoLiberado=true});
+      selected.clear();renderPeople();refreshOverview();
+    }else showToast('Erro: '+res.error);
+  }catch(e){showToast('Erro de conexão.');}
+  finally{btn.disabled=false;btn.innerHTML='🔓 Confirmar';closeModals();}
+}
+async function releaseOne(code){
+  try{
+    const res=await API.post({action:'releaseResult',senha:adminPass,code});
+    if(res.ok){const u=allUsers.find(x=>x.code===code);if(u)u.resultadoLiberado=true;renderPeople();showToast('✓ Resultado liberado.');refreshOverview();}
+    else showToast('Erro: '+res.error);
+  }catch(e){showToast('Erro de conexão.');}
+}
+async function lockOne(code){
+  try{
+    const res=await API.post({action:'lockResult',senha:adminPass,code});
+    if(res.ok){const u=allUsers.find(x=>x.code===code);if(u)u.resultadoLiberado=false;renderPeople();showToast('🔒 Bloqueado.');refreshOverview();}
+    else showToast('Erro: '+res.error);
+  }catch(e){showToast('Erro de conexão.');}
+}
+async function lockSelected(){
+  for(const code of [...selected]){
+    await API.post({action:'lockResult',senha:adminPass,code}).catch(()=>{});
+    const u=allUsers.find(x=>x.code===code);if(u)u.resultadoLiberado=false;
+  }
+  selected.clear();renderPeople();showToast('🔒 Resultados bloqueados.');refreshOverview();
+}
+
+// ─── DELETE ───────────────────────────────────────────────────
+function openDelete(code){
+  deleteTarget=code;
+  const u=allUsers.find(x=>x.code===code);
+  document.getElementById('modal-delete-msg').textContent=`Remover "${u?u.nome:code}" permanentemente?`;
+  document.getElementById('modal-delete').classList.add('open');
+}
+async function confirmDelete(){
+  const btn=document.getElementById('btn-confirm-delete');
+  btn.disabled=true;btn.textContent='Removendo...';
+  try{
+    const res=await API.post({action:'deleteUser',senha:adminPass,code:deleteTarget});
+    if(res.ok){allUsers=allUsers.filter(u=>u.code!==deleteTarget);selected.delete(deleteTarget);deleteTarget=null;renderPeople();showToast('Cadastro removido.');refreshOverview();}
+    else showToast('Erro: '+res.error);
+  }catch(e){showToast('Erro de conexão.');}
+  finally{btn.disabled=false;btn.textContent='Remover';closeModals();}
+}
+
+// ─── UPLOAD IMAGES ────────────────────────────────────────────
+function previewImage(type, input) {
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById(`prev-${type}-img`);
+    const hint = document.querySelector(`#prev-${type} .up-hint`);
+    img.src = e.target.result; img.style.display='block';
+    if(hint) hint.style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function uploadImage(type) {
+  const input = document.getElementById(`file-${type}`);
+  const file = input.files[0];
+  if(!file){showToast('Selecione uma imagem primeiro.');return}
+  if(file.size > 5*1024*1024){showToast('Imagem muito grande. Máximo 5MB.');return}
+  const btn = document.getElementById(`btn-upload-${type}`);
+  const status = document.getElementById(`status-${type}`);
+  btn.disabled=true; btn.innerHTML='<div class="spinner"></div> Enviando...';
+  try{
+    const base64 = await fileToBase64(file);
+    const res = await API.post({
+      action:'uploadImage',senha:adminPass,
+      type, filename:file.name, mimeType:file.type, base64Data:base64
+    });
+    if(res.ok){
+      status.textContent='✓ Imagem salva com sucesso!';
+      status.style.display='block';
+      showToast(`✓ ${type==='logo'?'Logo':'Fundo'} atualizado!`);
+      setTimeout(()=>status.style.display='none',4000);
+    }else showToast('Erro: '+res.error);
+  }catch(e){showToast('Erro ao enviar imagem.');}
+  finally{btn.disabled=false;btn.innerHTML=`Enviar ${type==='logo'?'Logo':'Fundo'}`;}
+}
+
+function fileToBase64(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=()=>res(r.result.split(',')[1]);
+    r.onerror=rej;
+    r.readAsDataURL(file);
+  });
+}
+
+// ─── CONFIG ───────────────────────────────────────────────────
+async function loadCurrentConfig(){
+  try{
+    const res=await API.get({action:'getConfig'});
+    if(!res.ok)return;
+    if(res.churchName) document.getElementById('inp-church-name').value=res.churchName;
+    if(res.logoFileId){
+      const img=document.getElementById('prev-logo-img');
+      img.src=`https://drive.google.com/uc?export=view&id=${res.logoFileId}`;
+      img.style.display='block';
+      const hint=document.querySelector('#prev-logo .up-hint');
+      if(hint)hint.style.display='none';
+    }
+    if(res.bgFileId){
+      const img=document.getElementById('prev-bg-img');
+      img.src=`https://drive.google.com/uc?export=view&id=${res.bgFileId}`;
+      img.style.display='block';
+      const hint=document.querySelector('#prev-bg .up-hint');
+      if(hint)hint.style.display='none';
+    }
+  }catch(e){}
+}
+
+async function saveConfig(){
+  const churchName=document.getElementById('inp-church-name').value.trim();
+  if(!churchName){showToast('Informe o nome da igreja.');return}
+  const btn=document.getElementById('btn-save-config');
+  btn.disabled=true;btn.innerHTML='<div class="spinner"></div> Salvando...';
+  try{
+    const res=await API.post({action:'saveConfig',senha:adminPass,churchName});
+    if(res.ok)showToast('✓ Configurações salvas!');
+    else showToast('Erro: '+res.error);
+  }catch(e){showToast('Erro de conexão.');}
+  finally{btn.disabled=false;btn.innerHTML='Salvar Configurações';}
+}
+
+async function changePass(){
+  const np=document.getElementById('inp-new-pass').value;
+  const cp=document.getElementById('inp-confirm-pass').value;
+  if(!np){showToast('Informe a nova senha.');return}
+  if(np!==cp){showToast('As senhas não coincidem.');return}
+  if(np.length<4){showToast('Senha muito curta.');return}
+  try{
+    const res=await API.post({action:'saveConfig',senha:adminPass,senhaAdmin:np});
+    if(res.ok){adminPass=np;sessionStorage.setItem('ed_admin_pass',np);showToast('✓ Senha alterada com sucesso!');}
+    else showToast('Erro: '+res.error);
+  }catch(e){showToast('Erro de conexão.');}
+}
+
+// ─── UTILS ────────────────────────────────────────────────────
+function closeModals(){document.querySelectorAll('.modal-ov').forEach(m=>m.classList.remove('open'))}
+
+// ─── AUDIT ────────────────────────────────────────────────────
+// ─── COMBINAÇÃO POR NOME ─────────────────────────────────────
+const _ALFA_NORM = {'A':'administracao','B':'apostolo','C':'ciencia ou conhecimento','D':'contribuir','E':'criancas','F':'discernimento','G':'evangelista','H':'exortacao (encorajamento)','I':'fe','J':'hospitalidade','K':'intercessao','L':'lideranca','M':'louvor/musica','N':'mestre/ensino','O':'misericordia','P':'missionario','Q':'pastor','R':'profecia','S':'profeta','T':'sabedoria','U':'servico','V':'socorro'};
+const _OMEGA_NORM = {'A':'profecia','B':'pastor','C':'ensino','D':'sabedoria','E':'conhecimento','F':'exortacao','G':'discernimento de espiritos','H':'contribuicao','I':'socorros','J':'misericordia','K':'missionario','L':'evangelismo','M':'hospitalidade','N':'fe','O':'lideranca','P':'administracao','Q':'milagres','R':'curas','S':'linguas','T':'interpretacao de linguas','U':'pobreza voluntaria','V':'celibato','W':'intercessao','X':'libertacao','Y':'servico'};
+const _CANON = {'administracao':'Administração','apostolo':'Apóstolo','ciencia ou conhecimento':'Ciência ou Conhecimento','contribuir':'Contribuir','criancas':'Crianças','discernimento':'Discernimento','evangelista':'Evangelista','exortacao (encorajamento)':'Exortação (Encorajamento)','fe':'Fé','hospitalidade':'Hospitalidade','intercessao':'Intercessão','lideranca':'Liderança','louvor/musica':'Louvor/Música','mestre/ensino':'Mestre/Ensino','misericordia':'Misericórdia','missionario':'Missionário','pastor':'Pastor','profecia':'Profecia','profeta':'Profeta','sabedoria':'Sabedoria','servico':'Serviço','socorro':'Socorro','ensino':'Ensino','conhecimento':'Conhecimento','exortacao':'Exortação','discernimento de espiritos':'Discernimento de Espíritos','contribuicao':'Contribuição','socorros':'Socorros','evangelismo':'Evangelismo','milagres':'Milagres','curas':'Curas','linguas':'Línguas','interpretacao de linguas':'Interpretação de Línguas','pobreza voluntaria':'Pobreza Voluntária','celibato':'Celibato','libertacao':'Libertação'};
+
+// Alias: normaliza nomes do Ômega para equivalentes do Alfa quando necessário
+const _OMEGA_ALIAS = {'socorros':'socorro'};
+function _normOmega(n) { return _OMEGA_ALIAS[n] || n; }
+
+function calcCombination(topGroupsAlfa, topGroupsOmega) {
+  const alfaNames = new Set();
+  topGroupsAlfa.forEach(g => g.letters.forEach(l => alfaNames.add(_ALFA_NORM[l]||l)));
+  const omegaNames = new Set();
+  topGroupsOmega.forEach(g => g.letters.forEach(l => omegaNames.add(_normOmega(_OMEGA_NORM[l]||l))));
+  const primary = [...alfaNames].filter(n => omegaNames.has(n)).map(n => _CANON[n]||n);
+  const alfaOnly = [...alfaNames].filter(n => !omegaNames.has(n)).map(n => _CANON[n]||n);
+  const omegaOnly = [...omegaNames].filter(n => !alfaNames.has(n)).map(n => _CANON[n]||n);
+  const secondary = [...alfaOnly, ...omegaOnly];
+  return { primary, secondary };
+}
+
+// ─── INLINE CALC (para auditoria) ────────────────────────────
+const _ALFA_MAP = (function(){
+  const L='ABCDEFGHIJKLMNOPQRSTUV', m={};
+  for(let i=0;i<L.length;i++) for(let k=0;k<5;k++) m[(i+1)+k*22]=L[i];
+  return m;
+})();
+const _OMEGA_MAP = (function(){
+  const L='ABCDEFGHIJKLMNOPQRSTUVWXY', m={};
+  for(let i=0;i<L.length;i++) for(let k=0;k<5;k++) m[(i+1)+k*25]=L[i];
+  return m;
+})();
+const _DON_ALFA = {'A':'Administração','B':'Apóstolo','C':'Ciência ou Conhecimento','D':'Contribuir','E':'Crianças','F':'Discernimento','G':'Evangelista','H':'Exortação (Encorajamento)','I':'Fé','J':'Hospitalidade','K':'Intercessão','L':'Liderança','M':'Louvor/Música','N':'Mestre/Ensino','O':'Misericórdia','P':'Missionário','Q':'Pastor','R':'Profecia','S':'Profeta','T':'Sabedoria','U':'Serviço','V':'Socorro'};
+const _DON_OMEGA = {'A':'Profecia','B':'Pastor','C':'Ensino','D':'Sabedoria','E':'Conhecimento','F':'Exortação','G':'Discernimento de Espíritos','H':'Contribuição','I':'Socorros','J':'Misericórdia','K':'Missionário','L':'Evangelismo','M':'Hospitalidade','N':'Fé','O':'Liderança','P':'Administração','Q':'Milagres','R':'Curas','S':'Línguas','T':'Interpretação de Línguas','U':'Pobreza Voluntária','V':'Celibato','W':'Intercessão','X':'Libertação','Y':'Serviço'};
+
+function _calcTotals(ans, map) {
+  const t={};
+  Object.keys(ans).forEach(q=>{ const l=map[parseInt(q)]; if(l) t[l]=(t[l]||0)+parseInt(ans[q]); });
+  return t;
+}
+function _groupByScore(totals) {
+  const sorted=Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+  const groups=[];
+  sorted.forEach(([l,s])=>{ const last=groups[groups.length-1]; if(last&&last.score===s) last.letters.push(l); else groups.push({score:s,letters:[l]}); });
+  return groups;
+}
+
+async function openAudit(code) {
+  const u = allUsers.find(x=>x.code===code);
+  document.getElementById('audit-name').textContent = u ? u.nome : code;
+  document.getElementById('audit-sub').textContent = 'Código: '+code+' · Auditoria de pontuação';
+  document.getElementById('audit-content').innerHTML = '<div class="loading-row"><div class="spinner-lg"></div> Carregando respostas...</div>';
+  document.getElementById('modal-audit').classList.add('open');
+  try {
+    const res = await API.get({ action: 'getUser', code });
+    if (!res.ok) { document.getElementById('audit-content').innerHTML = '<p style="color:var(--red)">Erro ao carregar.</p>'; return; }
+    const alfaTotals = _calcTotals(res.alfa||{}, _ALFA_MAP);
+    const omegaTotals = _calcTotals(res.omega||{}, _OMEGA_MAP);
+    const combTotals = {};
+    const allLetters = new Set([...Object.keys(alfaTotals),...Object.keys(omegaTotals)]);
+    allLetters.forEach(l => { combTotals[l] = (alfaTotals[l]||0) + (omegaTotals[l]||0); });
+    const groupsAlfa = _groupByScore(alfaTotals);
+    const groupsOmega = _groupByScore(omegaTotals);
+    const groupsComb = _groupByScore(combTotals);
+    const maxA = groupsAlfa[0]?.score||1, maxO = groupsOmega[0]?.score||1, maxC = groupsComb[0]?.score||1;
+
+    const tableRows = (groups, max, nameMap) => groups.map((g, i) => {
+      const rank = i===0?'top1':i===1?'top2':i===2?'top3':'';
+      const rankLabel = i<3?(i+1)+'º':'';
+      const letStr = g.letters.join(' · ');
+      const nameStr = g.letters.map(l=>(nameMap||DON_NAMES)[l]||l).join(', ');
+      return '<tr class="'+rank+'"><td><span class="audit-rank">'+rankLabel+'</span></td><td><span class="audit-letter">'+letStr+'</span></td><td style="color:var(--w80);font-size:12px">'+nameStr+'</td><td><span class="audit-pts">'+g.score+'</span></td><td><div class="audit-bar-wrap"><div class="audit-bar" style="width:'+Math.round(g.score/max*100)+'%"></div></div></td></tr>';
+    }).join('');
+
+    const chips = (groups) => groups.slice(0,3).map((g,i)=>'<div class="audit-chip"><div class="audit-chip-rank">'+(i+1)+'º lugar</div><div class="audit-chip-letter">'+g.letters.join(' · ')+'</div><div class="audit-chip-name">'+g.letters.map(l=>(DON_NAMES[l]||l)).join(', ')+'</div><div class="audit-chip-pts">'+g.score+' pts</div></div>').join('');
+    const alfaAns = Object.keys(res.alfa||{}).length, omegaAns = Object.keys(res.omega||{}).length;
+    document.getElementById('audit-content').innerHTML =
+      '<div class="audit-section"><div class="audit-section-title">Inventário Alfa — '+alfaAns+'/110 respondidas</div><div class="audit-summary">'+chips(groupsAlfa)+'</div><table class="audit-table"><thead><tr><th>Pos</th><th>Letra(s)</th><th>Dom</th><th>Pts</th><th>Barra</th></tr></thead><tbody>'+tableRows(groupsAlfa,maxA,_DON_ALFA)+'</tbody></table></div>'+
+      '<div class="audit-section"><div class="audit-section-title">Inventário Ômega — '+omegaAns+'/125 respondidas</div><div class="audit-summary">'+chips(groupsOmega)+'</div><table class="audit-table"><thead><tr><th>Pos</th><th>Letra(s)</th><th>Dom</th><th>Pts</th><th>Barra</th></tr></thead><tbody>'+tableRows(groupsOmega,maxO,_DON_OMEGA)+'</tbody></table></div>'+
+      (function(){
+        const comb = calcCombination(groupsAlfa, groupsOmega);
+        const pHtml = comb.primary.length ? comb.primary.map(n=>'<div style="background:rgba(0,185,173,.1);border:1px solid rgba(0,185,173,.3);border-radius:8px;padding:7px 12px;font-size:13px;color:#fff;margin:3px">'+n+'</div>').join('') : '<p style="color:var(--w50);font-size:13px">Nenhum dom em comum.</p>';
+        const sHtml = comb.secondary.map(n=>'<div style="background:var(--w06);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:13px;color:var(--w80);margin:3px">'+n+'</div>').join('');
+        return '<div class="audit-section"><div class="audit-section-title">Combinação Alfa + Ômega</div>'+
+          '<div style="margin-bottom:10px"><div style="font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--w50);margin-bottom:8px">⭐ DONS PRIMÁRIOS</div><div style="display:flex;flex-wrap:wrap;gap:6px">'+pHtml+'</div></div>'+
+          (sHtml?'<div><div style="font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--w50);margin-bottom:8px">✦ DONS SECUNDÁRIOS</div><div style="display:flex;flex-wrap:wrap;gap:6px">'+sHtml+'</div></div>':'')+
+          '</div>';
+      })();
+  } catch(e) {
+    console.error('AUDIT ERROR:', e);
+    document.getElementById('audit-content').innerHTML = '<p style="color:var(--red)">Erro: ' + e.message + '</p>';
+  }
+}
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ─── BOOT ─────────────────────────────────────────────────────
+const saved=sessionStorage.getItem('ed_admin_pass');
+if(saved){document.getElementById('login-pass').value=saved;doLogin();}
+</script>
+</body>
+</html>

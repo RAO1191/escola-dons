@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Inventário de Dons</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g1:#E1D91E;--g2:#00B9AD;
+  --grad:linear-gradient(90deg,#E1D91E,#00B9AD);
+  --black:#080808;--black2:#101010;--black3:#161616;
+  --white:#FFFFFF;--w80:rgba(255,255,255,0.80);--w50:rgba(255,255,255,0.50);
+  --w20:rgba(255,255,255,0.20);--w10:rgba(255,255,255,0.10);
+  --w06:rgba(255,255,255,0.06);--border:rgba(255,255,255,0.10);
+}
+html,body{height:100%;overflow:hidden}
+body{background:var(--black);color:var(--white);font-family:'Inter',sans-serif;font-size:15px;display:flex;flex-direction:column}
+
+/* ── TOPBAR ── */
+.topbar{flex-shrink:0;background:rgba(8,8,8,.97);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 16px;z-index:100}
+.topbar-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;gap:12px;height:54px}
+.back-btn{background:none;border:none;color:var(--w50);font-size:20px;cursor:pointer;padding:4px;transition:color .2s;line-height:1;flex-shrink:0}
+.back-btn:hover{color:var(--g2)}
+.topbar-name{font-size:14px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar-code{font-size:11px;font-weight:700;letter-spacing:.1em;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;flex-shrink:0}
+
+/* ── VIEWS ── */
+#view-home,#view-form,#view-result{display:none;flex:1;overflow:hidden;flex-direction:column}
+#view-home.active,#view-form.active,#view-result.active{display:flex}
+
+/* ══ HOME VIEW ══ */
+.home-scroll{flex:1;overflow-y:auto;padding:20px 16px 60px}
+.home-inner{max-width:560px;margin:0 auto}
+.home-greeting{padding:8px 0 20px}
+.home-greeting .label{font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--w50);margin-bottom:6px;display:block}
+.home-greeting h2{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:.04em}
+.home-greeting p{font-size:13px;color:var(--w50);margin-top:4px;line-height:1.55}
+.inv-cards{display:flex;flex-direction:column;gap:12px;margin-bottom:22px}
+.inv-card{background:var(--black2);border:1px solid var(--border);border-radius:16px;padding:18px 20px;cursor:pointer;transition:border-color .2s,transform .15s;position:relative;overflow:hidden}
+.inv-card:hover{border-color:rgba(0,185,173,.4);transform:translateY(-2px)}
+.inv-card:active{transform:translateY(0)}
+.inv-card-top{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.inv-icon{width:46px;height:46px;border-radius:12px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:22px;color:#000;flex-shrink:0}
+.inv-info{flex:1;min-width:0}
+.inv-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;line-height:1}
+.inv-desc{font-size:12px;color:var(--w50);margin-top:3px}
+.inv-badge{font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;flex-shrink:0}
+.inv-badge.done{background:rgba(0,185,173,.15);border:1px solid rgba(0,185,173,.4);color:var(--g2)}
+.inv-badge.partial{background:rgba(225,217,30,.1);border:1px solid rgba(225,217,30,.3);color:var(--g1)}
+.inv-badge.empty{background:var(--w06);border:1px solid var(--border);color:var(--w50)}
+.inv-prog{margin-bottom:10px}
+.inv-prog-row{display:flex;justify-content:space-between;font-size:11px;color:var(--w50);margin-bottom:5px}
+.inv-prog-pct{font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.inv-prog-track{height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
+.inv-prog-fill{height:100%;background:var(--grad);border-radius:3px;transition:width .4s ease}
+.inv-cta{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600}
+.inv-cta-text{color:var(--g2)}
+.inv-cta-arrow{font-size:18px;color:var(--w20);transition:all .2s}
+.inv-card:hover .inv-cta-arrow{color:var(--g2);transform:translateX(4px)}
+.result-btn{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,rgba(225,217,30,.05),rgba(0,185,173,.06));border:1px solid rgba(0,185,173,.25);border-radius:16px;padding:18px 20px;cursor:pointer;transition:border-color .2s,transform .15s;width:100%}
+.result-btn:hover{border-color:rgba(0,185,173,.5);transform:translateY(-2px)}
+.result-btn:active{transform:translateY(0)}
+.result-icon{width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,rgba(225,217,30,.15),rgba(0,185,173,.15));border:1px solid rgba(0,185,173,.3);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.result-info{flex:1;text-align:left}
+.result-info strong{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;display:block;line-height:1}
+.result-info span{font-size:12px;color:var(--w50);margin-top:3px;display:block}
+
+/* ══ FORM VIEW ══ */
+.form-legend{flex-shrink:0;background:var(--black2);border-bottom:1px solid var(--border);padding:10px 16px;z-index:10}
+.form-legend-inner{max-width:900px;margin:0 auto}
+.form-legend-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.form-legend-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.04em}
+.form-legend-count{font-size:12px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.form-legend-prog{height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-bottom:8px}
+.form-legend-prog-fill{height:100%;background:var(--grad);border-radius:2px;transition:width .3s ease}
+.legend-items{display:flex;gap:6px}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--w50);padding-right:10px;border-right:1px solid var(--border)}
+.leg-item:last-child{border-right:none;padding-right:0}
+.leg-dot{width:26px;height:26px;border-radius:8px;border:1px solid var(--border);background:var(--w06);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--w50);flex-shrink:0}
+.form-questions{flex:1;overflow-y:auto;padding:0 16px}
+.form-questions-inner{max-width:900px;margin:0 auto;padding-bottom:80px}
+.q-item{display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.q-item.answered .q-num{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.q-num{font-family:'Bebas Neue',sans-serif;font-size:16px;color:rgba(255,255,255,.2);min-width:26px;padding-top:2px;text-align:right;flex-shrink:0}
+.q-body{flex:1;min-width:0}
+.q-text{font-size:14px;line-height:1.55;color:var(--w80);margin-bottom:10px}
+.q-opts{display:flex;gap:8px}
+.score-btn{width:44px;height:44px;border-radius:10px;border:1.5px solid var(--border);background:var(--w06);color:var(--w50);font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.score-btn:hover{border-color:var(--g2);color:var(--g2)}
+.score-btn.sel{background:var(--grad);border-color:transparent;color:#000;font-weight:800}
+.form-bottom{flex-shrink:0;background:rgba(8,8,8,.97);backdrop-filter:blur(12px);border-top:1px solid var(--border);padding:12px 16px}
+.form-bottom-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.form-ans-info{font-size:12px;color:var(--w50)}
+.form-bottom-btns{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ══ RESULT VIEW ══ */
+.result-scroll{flex:1;overflow-y:auto;padding:0 16px 60px}
+.result-inner{max-width:640px;margin:0 auto}
+.result-head{padding:22px 0 16px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.result-head .label{font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:block;margin-bottom:6px}
+.result-head h2{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:.04em}
+.results-locked{text-align:center;padding:52px 24px}
+.lock-icon{font-size:56px;margin-bottom:18px;display:block}
+.results-locked h3{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:.04em;margin-bottom:10px}
+.results-locked p{font-size:14px;color:var(--w50);max-width:300px;margin:0 auto;line-height:1.65}
+.r-card{background:var(--black2);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:14px}
+.r-head{padding:14px 18px;border-bottom:1px solid var(--border)}
+.r-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.05em}
+.r-sub{font-size:11px;color:var(--w50);margin-top:2px}
+.r-body{padding:18px}
+.g-item{display:flex;align-items:center;gap:13px;margin-bottom:13px}
+.g-item:last-child{margin-bottom:0}
+.g-rank{font-family:'Bebas Neue',sans-serif;font-size:30px;color:rgba(255,255,255,.15);min-width:28px;text-align:center;line-height:1}
+.g-info{flex:1;min-width:0}
+.g-letter{font-size:13px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.g-name{font-size:13px;color:var(--w50);margin-top:1px}
+.g-bar-wrap{height:4px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:6px;overflow:hidden}
+.g-bar{height:100%;background:var(--grad);border-radius:2px}
+.g-pts{font-size:11px;font-weight:700;color:#000;background:var(--grad);border-radius:20px;padding:4px 11px;flex-shrink:0}
+.combined-box{background:linear-gradient(135deg,rgba(225,217,30,.05),rgba(0,185,173,.05));border:1px solid rgba(0,185,173,.25);border-radius:14px;padding:20px;margin-bottom:14px}
+.combined-box h3{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;margin-bottom:4px}
+.combined-box p{font-size:13px;color:var(--w50);margin-bottom:16px}
+.top3-row{display:flex;gap:8px;flex-wrap:wrap}
+.comb-section{margin-bottom:14px}
+.comb-label{font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px}
+.comb-chips{display:flex;flex-wrap:wrap;gap:8px}
+.comb-chip{border-radius:10px;padding:8px 14px;font-size:13px;font-weight:500}
+.comb-chip.comb-primary{background:linear-gradient(135deg,rgba(225,217,30,.12),rgba(0,185,173,.12));border:1px solid rgba(0,185,173,.4);color:#fff}
+.comb-chip.comb-secondary{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6)}
+.top3-chip{background:var(--w06);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;flex:1;min-width:80px}
+.chip-rank{font-size:10px;color:var(--w50);margin-bottom:4px}
+.chip-letter{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:.05em;line-height:1;display:block;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.chip-name{font-size:10px;color:var(--w50);margin-top:5px;line-height:1.3}
+.result-back-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--w06);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--w80);cursor:pointer;transition:all .2s;margin-top:16px;width:100%}
+.result-back-btn:hover{border-color:var(--g2);color:var(--g2)}
+
+/* ── BTNS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .2s;touch-action:manipulation}
+.btn-grad{background:var(--grad);color:#000;box-shadow:0 4px 16px rgba(0,185,173,.2)}
+.btn-grad:hover{opacity:.9;transform:translateY(-1px)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--w50)}
+.btn-outline:hover{border-color:var(--g2);color:var(--g2)}
+.btn-ghost{background:transparent;color:var(--w50)}
+.btn-ghost:hover{color:var(--g2)}
+
+/* ── MODAL ── */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.modal-ov.open{display:flex}
+.modal{background:var(--black2);border:1px solid var(--border);border-radius:16px;width:100%;max-width:360px;animation:mIn .22s ease}
+@keyframes mIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.modal-head{padding:22px 22px 14px;border-bottom:1px solid var(--border)}
+.modal-head h3{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.04em}
+.modal-head p{font-size:13px;color:var(--w50);margin-top:5px;line-height:1.5}
+.modal-foot{padding:16px 22px 22px;display:flex;gap:10px}
+.modal-foot .btn{flex:1}
+
+/* ── LOADING ── */
+.loading-page{position:fixed;inset:0;background:var(--black);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:200}
+.loading-page p{font-size:14px;color:var(--w50)}
+.spinner-lg{width:36px;height:36px;border:3px solid rgba(255,255,255,.1);border-top-color:var(--g2);border-radius:50%;animation:sp .7s linear infinite}
+.spinner{width:16px;height:16px;border:2px solid rgba(0,0,0,.3);border-top-color:#000;border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.form-questions::-webkit-scrollbar,.result-scroll::-webkit-scrollbar,.home-scroll::-webkit-scrollbar{width:4px}
+.form-questions::-webkit-scrollbar-track,.result-scroll::-webkit-scrollbar-track,.home-scroll::-webkit-scrollbar-track{background:transparent}
+.form-questions::-webkit-scrollbar-thumb,.result-scroll::-webkit-scrollbar-thumb,.home-scroll::-webkit-scrollbar-thumb{background:var(--w10);border-radius:2px}
+@media(max-width:420px){.score-btn{width:40px;height:40px;font-size:13px}.leg-item span:not(.leg-dot){display:none}}
+</style>
+</head>
+<body>
+
+<div class="loading-page" id="loading">
+  <div class="spinner-lg"></div>
+  <p>Carregando seu inventário…</p>
+</div>
+
+<div style="display:contents" id="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-inner">
+      <button class="back-btn" id="nav-back" onclick="navBack()">←</button>
+      <span class="topbar-name" id="topbar-name">—</span>
+      
+      <span class="topbar-code" id="topbar-code"></span>
+    </div>
+  </div>
+
+  <!-- ══ HOME ══ -->
+  <div id="view-home">
+    <div class="home-scroll">
+      <div class="home-inner">
+        <div class="home-greeting">
+          <span class="label">Inventário de Dons Espirituais</span>
+          <h2 id="home-nome">Olá!</h2>
+          <p>Selecione um inventário para responder ou acesse seu resultado.</p>
+        </div>
+
+        <div class="inv-cards">
+          <div class="inv-card" onclick="openForm('alfa')">
+            <div class="inv-card-top">
+              <div class="inv-icon">Α</div>
+              <div class="inv-info">
+                <div class="inv-title">Inventário Alfa</div>
+                <div class="inv-desc">110 afirmações · marque de 0 a 3</div>
+              </div>
+              <div class="inv-badge empty" id="badge-alfa">0/110</div>
+            </div>
+            <div class="inv-prog">
+              <div class="inv-prog-row">
+                <span id="alfa-prog-label">0 de 110 respondidas</span>
+                <span class="inv-prog-pct" id="alfa-prog-pct">0%</span>
+              </div>
+              <div class="inv-prog-track"><div class="inv-prog-fill" id="alfa-prog-fill" style="width:0%"></div></div>
+            </div>
+            <div class="inv-cta">
+              <span class="inv-cta-text" id="alfa-cta">Iniciar</span>
+              <span class="inv-cta-arrow">→</span>
+            </div>
+          </div>
+
+          <div class="inv-card" onclick="openForm('omega')">
+            <div class="inv-card-top">
+              <div class="inv-icon">Ω</div>
+              <div class="inv-info">
+                <div class="inv-title">Inventário Ômega</div>
+                <div class="inv-desc">125 afirmações · marque de 0 a 3</div>
+              </div>
+              <div class="inv-badge empty" id="badge-omega">0/125</div>
+            </div>
+            <div class="inv-prog">
+              <div class="inv-prog-row">
+                <span id="omega-prog-label">0 de 125 respondidas</span>
+                <span class="inv-prog-pct" id="omega-prog-pct">0%</span>
+              </div>
+              <div class="inv-prog-track"><div class="inv-prog-fill" id="omega-prog-fill" style="width:0%"></div></div>
+            </div>
+            <div class="inv-cta">
+              <span class="inv-cta-text" id="omega-cta">Iniciar</span>
+              <span class="inv-cta-arrow">→</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="result-btn" onclick="openResult()">
+          <div class="result-icon">✦</div>
+          <div class="result-info">
+            <strong>Ver Resultado</strong>
+            <span>Dons identificados pelo inventário</span>
+          </div>
+          <span style="font-size:18px;color:rgba(255,255,255,.2)">→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FORM ══ -->
+  <div id="view-form">
+    <div class="form-legend">
+      <div class="form-legend-inner">
+        <div class="form-legend-top">
+          <span class="form-legend-title" id="form-title">Inventário</span>
+          <span class="form-legend-count" id="form-count">0/110</span>
+        </div>
+        <div class="form-legend-prog"><div class="form-legend-prog-fill" id="form-prog-fill" style="width:0%"></div></div>
+        <div class="legend-items">
+          <div class="leg-item"><span class="leg-dot">0</span>Nunca</div>
+          <div class="leg-item"><span class="leg-dot">1</span>Raro</div>
+          <div class="leg-item"><span class="leg-dot">2</span>Às vezes</div>
+          <div class="leg-item"><span class="leg-dot">3</span>Sempre</div>
+        </div>
+      </div>
+    </div>
+    <div class="form-questions" id="form-questions">
+      <div class="form-questions-inner" id="form-list"></div>
+    </div>
+    <div class="form-bottom">
+      <div class="form-bottom-inner">
+        <span class="form-ans-info" id="form-ans-info">0 respondidas</span>
+        <div class="form-bottom-btns">
+          <button class="btn btn-ghost" onclick="confirmClear()">Limpar</button>
+          <button class="btn btn-outline" onclick="goHome()">← Menu</button>
+          <button class="btn btn-green" id="form-send-btn" onclick="sendCurrentInv()">💾 Enviar</button>
+          <button class="btn btn-grad" id="form-next-btn" onclick="formNext()">Próximo →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ RESULT ══ -->
+  <div id="view-result">
+    <div class="result-scroll">
+      <div class="result-inner">
+        <div class="result-head">
+          <span class="label">Resultado</span>
+          <h2>Seus Dons</h2>
+        </div>
+        <div id="result-content"></div>
+        <button class="result-back-btn" onclick="goHome()">← Voltar ao menu</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="modal-ov" id="modal-clear">
+  <div class="modal">
+    <div class="modal-head"><h3>Limpar Respostas</h3><p id="modal-msg">Tem certeza?</p></div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-grad" onclick="doClear()">Limpar</button>
+    </div>
+  </div>
+</div>
+
+<script src="config.js?v=1772024301"></script>
+<script src="data.js?v=1772024301"></script>
+<script>
+const CODE = new URLSearchParams(location.search).get('code');
+if (!CODE) location.href = 'index.html';
+
+let user = null, currentInv = null;
+const answers = { alfa: {}, omega: {} };
+
+// ─── NAVIGATION ───────────────────────────────────────────────
+function showView(name) {
+  ['home','form','result'].forEach(v => {
+    document.getElementById('view-'+v).classList.toggle('active', v===name);
+  });
+  document.getElementById('nav-back').style.visibility = name==='home' ? 'hidden' : 'visible';
+}
+
+function goHome() { updateHomeUI(); showView('home'); currentInv=null; }
+function navBack() { if(currentInv) goHome(); else history.back(); }
+
+function openForm(inv) {
+  currentInv = inv;
+  renderFormList(inv);
+  updateFormUI(inv);
+  document.getElementById('form-title').textContent = inv==='alfa' ? 'Inventário Alfa' : 'Inventário Ômega';
+  document.getElementById('form-next-btn').textContent = inv==='alfa' ? 'Ir para Ômega →' : 'Ver Resultado →';
+  document.getElementById('form-questions').scrollTop = 0;
+  showView('form');
+}
+
+async function formNext() {
+  if (currentInv==='alfa') {
+    openForm('omega');
+  } else {
+    openResult();
+  }
+}
+
+async function openResult() { showView('result'); await renderResult(); }
+
+// ─── BOOT ──────────────────────────────────────────────────────
+async function boot() {
+  try {
+    const res = await API.get({ action:'getUser', code:CODE });
+    if (!res.ok) { alert('Código inválido.'); location.href='index.html'; return; }
+    user = res;
+    Object.assign(answers.alfa, res.alfa||{});
+    Object.assign(answers.omega, res.omega||{});
+    document.getElementById('topbar-name').textContent = user.nome;
+    document.getElementById('topbar-code').textContent = CODE;
+    document.getElementById('home-nome').textContent = 'Olá, ' + user.nome.split(' ')[0] + '!';
+    updateHomeUI();
+    showView('home');
+    document.getElementById('loading').style.display='none';
+  } catch(e) { alert('Erro de conexão. Recarregue a página.'); }
+}
+
+// ─── RENDER ────────────────────────────────────────────────────
+function renderFormList(inv) {
+  const qs = inv==='alfa' ? ALFA_QUESTIONS : OMEGA_QUESTIONS;
+  const el = document.getElementById('form-list');
+  el.innerHTML = '';
+  qs.forEach((text, idx) => {
+    const num=idx+1, cur=answers[inv][num];
+    const d=document.createElement('div');
+    d.className='q-item'+(cur!=null?' answered':'');
+    d.id=`qi-${inv}-${num}`;
+    d.innerHTML=`<span class="q-num">${num}</span><div class="q-body"><div class="q-text">${text}</div><div class="q-opts">${[0,1,2,3].map(v=>`<button class="score-btn${cur===v?' sel':''}" onclick="pick('${inv}',${num},${v})">${v}</button>`).join('')}</div></div>`;
+    el.appendChild(d);
+  });
+}
+
+// ─── PICK ──────────────────────────────────────────────────────
+function pick(inv, num, val) {
+  answers[inv][num]=val;
+  document.querySelectorAll(`#qi-${inv}-${num} .score-btn`).forEach((b,i)=>b.classList.toggle('sel',i===val));
+  document.getElementById(`qi-${inv}-${num}`).classList.add('answered');
+  updateHomeUI(); updateFormUI(inv);
+}
+
+// ─── UI ────────────────────────────────────────────────────────
+function updateHomeUI() {
+  const an=Object.keys(answers.alfa).length, on=Object.keys(answers.omega).length;
+  const aPct=Math.round(an/110*100), oPct=Math.round(on/125*100);
+  document.getElementById('alfa-prog-fill').style.width=aPct+'%';
+  document.getElementById('alfa-prog-pct').textContent=aPct+'%';
+  document.getElementById('alfa-prog-label').textContent=`${an} de 110 respondidas`;
+  document.getElementById('alfa-cta').textContent=an===0?'Iniciar':an>=110?'Revisar':'Continuar';
+  const ba=document.getElementById('badge-alfa');
+  ba.textContent=`${an}/110`; ba.className='inv-badge '+(an>=110?'done':an>0?'partial':'empty');
+  document.getElementById('omega-prog-fill').style.width=oPct+'%';
+  document.getElementById('omega-prog-pct').textContent=oPct+'%';
+  document.getElementById('omega-prog-label').textContent=`${on} de 125 respondidas`;
+  document.getElementById('omega-cta').textContent=on===0?'Iniciar':on>=125?'Revisar':'Continuar';
+  const bo=document.getElementById('badge-omega');
+  bo.textContent=`${on}/125`; bo.className='inv-badge '+(on>=125?'done':on>0?'partial':'empty');
+}
+
+function updateFormUI(inv) {
+  const total=inv==='alfa'?110:125, n=Object.keys(answers[inv]).length, pct=Math.round(n/total*100);
+  document.getElementById('form-count').textContent=`${n}/${total}`;
+  document.getElementById('form-prog-fill').style.width=pct+'%';
+  document.getElementById('form-ans-info').textContent=`${n} de ${total} respondidas`;
+}
+
+// ─── SAVE ──────────────────────────────────────────────────────
+async function sendCurrentInv() {
+  const btn = document.getElementById('form-send-btn');
+  const inv = currentInv;
+  const total = inv==='alfa' ? 110 : 125;
+  const answered = Object.keys(answers[inv]).length;
+  if (answered < total) {
+    const ok = confirm(`Você respondeu ${answered} de ${total} questões do ${inv==='alfa'?'Alfa':'Ômega'}. Enviar assim mesmo?`);
+    if (!ok) return;
+  }
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Enviando...';
+  try {
+    await API.post({action:'saveAnswers', code:CODE, alfa:answers.alfa, omega:answers.omega});
+    btn.innerHTML = '✓ Enviado!';
+    btn.style.background = 'var(--green)';
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.innerHTML = '💾 Enviar';
+      btn.style.background = '';
+    }, 2500);
+  } catch(e) {
+    btn.disabled = false;
+    btn.innerHTML = '⚠ Erro — tentar novamente';
+    setTimeout(() => { btn.innerHTML = '💾 Enviar'; }, 2500);
+  }
+}
+
+// ─── RESULT ────────────────────────────────────────────────────
+// ─── COMBINAÇÃO POR NOME ─────────────────────────────────────
+const _ALFA_NORM = {'A':'administracao','B':'apostolo','C':'ciencia ou conhecimento','D':'contribuir','E':'criancas','F':'discernimento','G':'evangelista','H':'exortacao (encorajamento)','I':'fe','J':'hospitalidade','K':'intercessao','L':'lideranca','M':'louvor/musica','N':'mestre/ensino','O':'misericordia','P':'missionario','Q':'pastor','R':'profecia','S':'profeta','T':'sabedoria','U':'servico','V':'socorro'};
+const _OMEGA_NORM = {'A':'profecia','B':'pastor','C':'ensino','D':'sabedoria','E':'conhecimento','F':'exortacao','G':'discernimento de espiritos','H':'contribuicao','I':'socorros','J':'misericordia','K':'missionario','L':'evangelismo','M':'hospitalidade','N':'fe','O':'lideranca','P':'administracao','Q':'milagres','R':'curas','S':'linguas','T':'interpretacao de linguas','U':'pobreza voluntaria','V':'celibato','W':'intercessao','X':'libertacao','Y':'servico'};
+const _CANON = {'administracao':'Administração','apostolo':'Apóstolo','ciencia ou conhecimento':'Ciência ou Conhecimento','contribuir':'Contribuir','criancas':'Crianças','discernimento':'Discernimento','evangelista':'Evangelista','exortacao (encorajamento)':'Exortação (Encorajamento)','fe':'Fé','hospitalidade':'Hospitalidade','intercessao':'Intercessão','lideranca':'Liderança','louvor/musica':'Louvor/Música','mestre/ensino':'Mestre/Ensino','misericordia':'Misericórdia','missionario':'Missionário','pastor':'Pastor','profecia':'Profecia','profeta':'Profeta','sabedoria':'Sabedoria','servico':'Serviço','socorro':'Socorro','ensino':'Ensino','conhecimento':'Conhecimento','exortacao':'Exortação','discernimento de espiritos':'Discernimento de Espíritos','contribuicao':'Contribuição','socorros':'Socorros','evangelismo':'Evangelismo','milagres':'Milagres','curas':'Curas','linguas':'Línguas','interpretacao de linguas':'Interpretação de Línguas','pobreza voluntaria':'Pobreza Voluntária','celibato':'Celibato','libertacao':'Libertação'};
+
+// Alias: normaliza nomes do Ômega para equivalentes do Alfa quando necessário
+const _OMEGA_ALIAS = {'socorros':'socorro'};
+function _normOmega(n) { return _OMEGA_ALIAS[n] || n; }
+
+function calcCombination(topGroupsAlfa, topGroupsOmega) {
+  const alfaNames = new Set();
+  topGroupsAlfa.forEach(g => g.letters.forEach(l => alfaNames.add(_ALFA_NORM[l]||l)));
+  const omegaNames = new Set();
+  topGroupsOmega.forEach(g => g.letters.forEach(l => omegaNames.add(_normOmega(_OMEGA_NORM[l]||l))));
+  const primary = [...alfaNames].filter(n => omegaNames.has(n)).map(n => _CANON[n]||n);
+  const alfaOnly = [...alfaNames].filter(n => !omegaNames.has(n)).map(n => _CANON[n]||n);
+  const omegaOnly = [...omegaNames].filter(n => !alfaNames.has(n)).map(n => _CANON[n]||n);
+  const secondary = [...alfaOnly, ...omegaOnly];
+  return { primary, secondary };
+}
+
+async function renderResult() {
+  const el=document.getElementById('result-content');
+  el.innerHTML='<div style="text-align:center;padding:40px 0"><div class="spinner-lg" style="margin:0 auto"></div></div>';
+  try { const r=await API.get({action:'getUser',code:CODE}); if(r.ok) user=r; } catch(e){}
+  if (!user.resultadoLiberado) {
+    el.innerHTML=`<div class="results-locked"><span class="lock-icon">🔒</span><h3>Resultado em Análise</h3><p>Suas respostas foram salvas. O líder irá liberar seu resultado em breve.</p></div>`;
+    return;
+  }
+  const at=calcTotals(answers.alfa,ALFA_LETTER_MAP,110), ot=calcTotals(answers.omega,OMEGA_LETTER_MAP,125);
+  const atop=getTop3(at),otop=getTop3(ot);
+  const maxA=atop[0]?.score||1,maxO=otop[0]?.score||1,ranks=['1º','2º','3º'];
+  // Grouped rows: each rank line shows ALL tied letters separated by " · "
+  const rows=(groups,max,nameMap)=>groups.map((g,i)=>{
+    const letStr=g.letters.join(' · ');
+    const nameStr=g.letters.map(l=>(nameMap||DON_NAMES)[l]||l).join(', ');
+    return `<div class="g-item"><div class="g-rank">${ranks[i]||''}</div><div class="g-info"><div class="g-letter">${letStr}</div><div class="g-name">${nameStr}</div><div class="g-bar-wrap"><div class="g-bar" style="width:${Math.round(g.score/max*100)}%"></div></div></div><div class="g-pts">${g.score}</div></div>`;
+  }).join('');
+  // Combinação por nome
+  const combResult = calcCombination(atop, otop);
+  const primaryHtml = combResult.primary.length
+    ? combResult.primary.map(n=>`<div class="comb-chip comb-primary"><span>${n}</span></div>`).join('')
+    : '<p style="color:rgba(255,255,255,.4);font-size:13px">Nenhum dom em comum nos tops.</p>';
+  const secondaryHtml = combResult.secondary.length
+    ? combResult.secondary.map(n=>`<div class="comb-chip comb-secondary"><span>${n}</span></div>`).join('')
+    : '';
+  el.innerHTML=`
+    <div class="r-card"><div class="r-head"><div class="r-title">Inventário Alfa</div><div class="r-sub">${Object.keys(answers.alfa).length}/110 respondidas</div></div><div class="r-body">${rows(atop,maxA,DON_NAMES_ALFA)}</div></div>
+    <div class="r-card"><div class="r-head"><div class="r-title">Inventário Ômega</div><div class="r-sub">${Object.keys(answers.omega).length}/125 respondidas</div></div><div class="r-body">${rows(otop,maxO,DON_NAMES_OMEGA)}</div></div>
+    <div class="combined-box">
+      <h3>Combinação Alfa + Ômega</h3>
+      <div class="comb-section"><div class="comb-label">⭐ Dons Primários</div><div class="comb-chips">${primaryHtml}</div></div>
+      ${combResult.secondary.length?`<div class="comb-section"><div class="comb-label">✦ Dons Secundários</div><div class="comb-chips">${secondaryHtml}</div></div>`:''}
+    </div>
+    <p style="font-size:13px;color:rgba(255,255,255,.4);text-align:center;line-height:1.65;padding:0 8px 8px">Converse com seu líder sobre como desenvolver estes dons no ministério.</p>`;
+}
+
+// ─── CLEAR ─────────────────────────────────────────────────────
+function confirmClear() {
+  document.getElementById('modal-msg').textContent=`Apagar todas as respostas do Inventário ${currentInv==='alfa'?'Alfa':'Ômega'}?`;
+  document.getElementById('modal-clear').classList.add('open');
+}
+function closeModal(){document.getElementById('modal-clear').classList.remove('open')}
+function doClear(){
+  answers[currentInv]={};
+  renderFormList(currentInv); updateHomeUI(); updateFormUI(currentInv);
+  closeModal();
+}
+
+boot();
+</script>
+</body>
+</html>
