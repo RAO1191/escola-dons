@@ -123,6 +123,11 @@ body{background:var(--black);color:var(--white);font-family:'Inter',sans-serif;f
 .combined-box h3{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;margin-bottom:4px}
 .combined-box p{font-size:13px;color:var(--w50);margin-bottom:16px}
 .top3-row{display:flex;gap:8px;flex-wrap:wrap}
+.s-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.s-item:last-child{border-bottom:none}
+.s-rank{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--g2);min-width:28px}
+.s-name{flex:1;font-size:15px;color:#fff;font-weight:500}
+.s-pts{font-size:13px;color:rgba(255,255,255,.4)}
 .comb-section{margin-bottom:14px}
 .comb-label{font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px}
 .comb-chips{display:flex;flex-wrap:wrap;gap:8px}
@@ -359,6 +364,7 @@ async function boot() {
   try {
     const res = await API.get({ action:'getUser', code:CODE });
     if (!res.ok) { alert('Código inválido.'); location.href='index.html'; return; }
+    if (res.preenchimentoBloqueado) { alert('⚠️ O preenchimento está bloqueado pelo administrador. Aguarde a liberação.'); location.href='index.html'; return; }
     user = res;
     Object.assign(answers.alfa, res.alfa||{});
     Object.assign(answers.omega, res.omega||{});
@@ -478,15 +484,15 @@ async function renderResult() {
     return;
   }
   const at=calcTotals(answers.alfa,ALFA_LETTER_MAP,110), ot=calcTotals(answers.omega,OMEGA_LETTER_MAP,125);
-  const atop=getTop3(at),otop=getTop3(ot);
-  const maxA=atop[0]?.score||1,maxO=otop[0]?.score||1,ranks=['1º','2º','3º'];
-  // Grouped rows: each rank line shows ALL tied letters separated by " · "
-  const rows=(groups,max,nameMap)=>groups.map((g,i)=>{
-    const letStr=g.letters.join(' · ');
+  const atop=getTop3(at), otop=getTop3(ot);
+  const ranks=['1º','2º','3º'];
+
+  // Resultado simplificado — só nomes, sem barras
+  const simpleRows=(groups,nameMap)=>groups.map((g,i)=>{
     const nameStr=g.letters.map(l=>(nameMap||DON_NAMES)[l]||l).join(', ');
-    return `<div class="g-item"><div class="g-rank">${ranks[i]||''}</div><div class="g-info"><div class="g-letter">${letStr}</div><div class="g-name">${nameStr}</div><div class="g-bar-wrap"><div class="g-bar" style="width:${Math.round(g.score/max*100)}%"></div></div></div><div class="g-pts">${g.score}</div></div>`;
+    return `<div class="s-item"><div class="s-rank">${ranks[i]||''}</div><div class="s-name">${nameStr}</div><div class="s-pts">${g.score} pts</div></div>`;
   }).join('');
-  // Combinação por nome
+
   const combResult = calcCombination(atop, otop);
   const primaryHtml = combResult.primary.length
     ? combResult.primary.map(n=>`<div class="comb-chip comb-primary"><span>${n}</span></div>`).join('')
@@ -494,9 +500,16 @@ async function renderResult() {
   const secondaryHtml = combResult.secondary.length
     ? combResult.secondary.map(n=>`<div class="comb-chip comb-secondary"><span>${n}</span></div>`).join('')
     : '';
+
   el.innerHTML=`
-    <div class="r-card"><div class="r-head"><div class="r-title">Inventário Alfa</div><div class="r-sub">${Object.keys(answers.alfa).length}/110 respondidas</div></div><div class="r-body">${rows(atop,maxA,DON_NAMES_ALFA)}</div></div>
-    <div class="r-card"><div class="r-head"><div class="r-title">Inventário Ômega</div><div class="r-sub">${Object.keys(answers.omega).length}/125 respondidas</div></div><div class="r-body">${rows(otop,maxO,DON_NAMES_OMEGA)}</div></div>
+    <div class="r-card">
+      <div class="r-head"><div class="r-title">Inventário Alfa</div></div>
+      <div class="r-body">${simpleRows(atop,DON_NAMES_ALFA)}</div>
+    </div>
+    <div class="r-card">
+      <div class="r-head"><div class="r-title">Inventário Ômega</div></div>
+      <div class="r-body">${simpleRows(otop,DON_NAMES_OMEGA)}</div>
+    </div>
     <div class="combined-box">
       <h3>Combinação Alfa + Ômega</h3>
       <div class="comb-section"><div class="comb-label">⭐ Dons Primários</div><div class="comb-chips">${primaryHtml}</div></div>
