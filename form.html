@@ -232,11 +232,11 @@ body{background:var(--black);color:var(--white);font-family:'Inter',sans-serif;f
                 <div class="inv-title">Inventário Ômega</div>
                 <div class="inv-desc">125 afirmações · marque de 0 a 3</div>
               </div>
-              <div class="inv-badge empty" id="badge-omega">0/125</div>
+              <div class="inv-badge empty" id="badge-omega">0/138</div>
             </div>
             <div class="inv-prog">
               <div class="inv-prog-row">
-                <span id="omega-prog-label">0 de 125 respondidas</span>
+                <span id="omega-prog-label">0 de 138 respondidas</span>
                 <span class="inv-prog-pct" id="omega-prog-pct">0%</span>
               </div>
               <div class="inv-prog-track"><div class="inv-prog-fill" id="omega-prog-fill" style="width:0%"></div></div>
@@ -403,7 +403,7 @@ function pick(inv, num, val) {
 // ─── UI ────────────────────────────────────────────────────────
 function updateHomeUI() {
   const an=Object.keys(answers.alfa).length, on=Object.keys(answers.omega).length;
-  const aPct=Math.round(an/110*100), oPct=Math.round(on/125*100);
+  const aPct=Math.round(an/110*100), oPct=Math.round(on/138*100);
   document.getElementById('alfa-prog-fill').style.width=aPct+'%';
   document.getElementById('alfa-prog-pct').textContent=aPct+'%';
   document.getElementById('alfa-prog-label').textContent=`${an} de 110 respondidas`;
@@ -412,14 +412,14 @@ function updateHomeUI() {
   ba.textContent=`${an}/110`; ba.className='inv-badge '+(an>=110?'done':an>0?'partial':'empty');
   document.getElementById('omega-prog-fill').style.width=oPct+'%';
   document.getElementById('omega-prog-pct').textContent=oPct+'%';
-  document.getElementById('omega-prog-label').textContent=`${on} de 125 respondidas`;
-  document.getElementById('omega-cta').textContent=on===0?'Iniciar':on>=125?'Revisar':'Continuar';
+  document.getElementById('omega-prog-label').textContent=`${on} de 138 respondidas`;
+  document.getElementById('omega-cta').textContent=on===0?'Iniciar':on>=138?'Revisar':'Continuar';
   const bo=document.getElementById('badge-omega');
-  bo.textContent=`${on}/125`; bo.className='inv-badge '+(on>=125?'done':on>0?'partial':'empty');
+  bo.textContent=`${on}/138`; bo.className='inv-badge '+(on>=138?'done':on>0?'partial':'empty');
 }
 
 function updateFormUI(inv) {
-  const total=inv==='alfa'?110:125, n=Object.keys(answers[inv]).length, pct=Math.round(n/total*100);
+  const total=inv==='alfa'?110:138, n=Object.keys(answers[inv]).length, pct=Math.round(n/total*100);
   document.getElementById('form-count').textContent=`${n}/${total}`;
   document.getElementById('form-prog-fill').style.width=pct+'%';
   document.getElementById('form-ans-info').textContent=`${n} de ${total} respondidas`;
@@ -429,7 +429,7 @@ function updateFormUI(inv) {
 async function sendCurrentInv() {
   const btn = document.getElementById('form-send-btn');
   const inv = currentInv;
-  const total = inv==='alfa' ? 110 : 125;
+  const total = inv==='alfa' ? 110 : 138;
   const answered = Object.keys(answers[inv]).length;
   if (answered < total) {
     const ok = confirm(`Você respondeu ${answered} de ${total} questões do ${inv==='alfa'?'Alfa':'Ômega'}. Enviar assim mesmo?`);
@@ -455,8 +455,8 @@ async function sendCurrentInv() {
 
 // ─── RESULT ────────────────────────────────────────────────────
 // ─── COMBINAÇÃO POR NOME ─────────────────────────────────────
-const _ALFA_NORM = {'A':'administracao','B':'apostolo','C':'ciencia ou conhecimento','D':'contribuir','E':'criancas','F':'discernimento','G':'evangelista','H':'exortacao (encorajamento)','I':'fe','J':'hospitalidade','K':'intercessao','L':'lideranca','M':'louvor/musica','N':'mestre/ensino','O':'misericordia','P':'missionario','Q':'pastor','R':'profecia','S':'profeta','T':'sabedoria','U':'servico','V':'socorro'};
-const _OMEGA_NORM = {'A':'profecia','B':'pastor','C':'ensino','D':'sabedoria','E':'conhecimento','F':'exortacao','G':'discernimento de espiritos','H':'contribuicao','I':'socorros','J':'misericordia','K':'missionario','L':'evangelismo','M':'hospitalidade','N':'fe','O':'lideranca','P':'administracao','Q':'milagres','R':'curas','S':'linguas','T':'interpretacao de linguas','U':'pobreza voluntaria','V':'celibato','W':'intercessao','X':'libertacao','Y':'servico'};
+const _ALFA_NORM = {"A":"administracao","B":"apostolado","C":"conhecimento","D":"contribuicao","E":"criancas","F":"discernimento","G":"evangelismo","H":"exortacao","I":"fe","J":"hospitalidade","K":"intercessao","L":"lideranca","M":"louvor","N":"ensino","O":"misericordia","P":"missao","Q":"pastoreio","R":"profecia","S":"profeta","T":"sabedoria","U":"servico","V":"socorros"};
+const _OMEGA_NORM = {"A":"administracao","B":"apostolado","C":"discernimento","D":"evangelismo","E":"exortacao","F":"fe","G":"contribuicao","H":"hospitalidade","I":"conhecimento","J":"lideranca","K":"misericordia","L":"missao","M":"profecia","N":"pastoreio","O":"servico","P":"ensino","Q":"sabedoria","R":"milagres","S":"cura","T":"linguas","U":"interpretacao","V":"intercessao","W":"libertacao"};
 const _CANON = {'administracao':'Administração','apostolo':'Apóstolo','ciencia ou conhecimento':'Ciência ou Conhecimento','contribuir':'Contribuir','criancas':'Crianças','discernimento':'Discernimento','evangelista':'Evangelista','exortacao (encorajamento)':'Exortação (Encorajamento)','fe':'Fé','hospitalidade':'Hospitalidade','intercessao':'Intercessão','lideranca':'Liderança','louvor/musica':'Louvor/Música','mestre/ensino':'Mestre/Ensino','misericordia':'Misericórdia','missionario':'Missionário','pastor':'Pastor','profecia':'Profecia','profeta':'Profeta','sabedoria':'Sabedoria','servico':'Serviço','socorro':'Socorro','ensino':'Ensino','conhecimento':'Conhecimento','exortacao':'Exortação','discernimento de espiritos':'Discernimento de Espíritos','contribuicao':'Contribuição','socorros':'Socorros','evangelismo':'Evangelismo','milagres':'Milagres','curas':'Curas','linguas':'Línguas','interpretacao de linguas':'Interpretação de Línguas','pobreza voluntaria':'Pobreza Voluntária','celibato':'Celibato','libertacao':'Libertação'};
 
 // Alias: normaliza nomes do Ômega para equivalentes do Alfa quando necessário
@@ -483,7 +483,7 @@ async function renderResult() {
     el.innerHTML=`<div class="results-locked"><span class="lock-icon">🔒</span><h3>Resultado em Análise</h3><p>Suas respostas foram salvas. O líder irá liberar seu resultado em breve.</p></div>`;
     return;
   }
-  const at=calcTotals(answers.alfa,ALFA_LETTER_MAP,110), ot=calcTotals(answers.omega,OMEGA_LETTER_MAP,125);
+  const at=calcTotals(answers.alfa,ALFA_LETTER_MAP,110), ot=calcTotals(answers.omega,OMEGA_LETTER_MAP,138);
   const atop=getTop3(at), otop=getTop3(ot);
   const ranks=['1º','2º','3º'];
 

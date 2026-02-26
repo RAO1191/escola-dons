@@ -490,7 +490,7 @@ async function loadPeople() {
 
 function getStatus(u){
   const a=parseInt(u.alfaRespondidas)||0,o=parseInt(u.omegaRespondidas)||0;
-  if(a>=110&&o>=125)return'complete';if(a>0||o>0)return'partial';return'empty';
+  if(a>=110&&o>=138)return'complete';if(a>0||o>0)return'partial';return'empty';
 }
 
 function renderPeople(){
@@ -525,7 +525,7 @@ function personCard(u){
       <div class="pmeta"><span class="code-chip">${u.code}</span>${sChip}${rBadge}</div>
     </div>
     <div class="pcard-body" id="pb-${u.code}">
-      <div class="pmini"><span>Alfa: ${u.alfaRespondidas||0}/110</span><span>Ômega: ${u.omegaRespondidas||0}/125</span></div>
+      <div class="pmini"><span>Alfa: ${u.alfaRespondidas||0}/110</span><span>Ômega: ${u.omegaRespondidas||0}/138</span></div>
       ${gifts.length?`<div class="pgifts">${gChips}</div>`:'<p style="font-size:13px;color:var(--w50);margin-top:12px">Sem respostas suficientes.</p>'}
       <div class="pactions">
         ${!u.resultadoLiberado
@@ -766,8 +766,8 @@ const _OMEGA_MAP = (function(){
   for(let i=0;i<L.length;i++) for(let k=0;k<5;k++) m[(i+1)+k*25]=L[i];
   return m;
 })();
-const _DON_ALFA = {'A':'Administração','B':'Apóstolo','C':'Ciência ou Conhecimento','D':'Contribuir','E':'Crianças','F':'Discernimento','G':'Evangelista','H':'Exortação (Encorajamento)','I':'Fé','J':'Hospitalidade','K':'Intercessão','L':'Liderança','M':'Louvor/Música','N':'Mestre/Ensino','O':'Misericórdia','P':'Missionário','Q':'Pastor','R':'Profecia','S':'Profeta','T':'Sabedoria','U':'Serviço','V':'Socorro'};
-const _DON_OMEGA = {'A':'Profecia','B':'Pastor','C':'Ensino','D':'Sabedoria','E':'Conhecimento','F':'Exortação','G':'Discernimento de Espíritos','H':'Contribuição','I':'Socorros','J':'Misericórdia','K':'Missionário','L':'Evangelismo','M':'Hospitalidade','N':'Fé','O':'Liderança','P':'Administração','Q':'Milagres','R':'Curas','S':'Línguas','T':'Interpretação de Línguas','U':'Pobreza Voluntária','V':'Celibato','W':'Intercessão','X':'Libertação','Y':'Serviço'};
+const _DON_ALFA = {"A":"Administração","B":"Apostolado","C":"Conhecimento","D":"Contribuição","E":"Crianças","F":"Discernimento","G":"Evangelismo","H":"Exortação","I":"Fé","J":"Hospitalidade","K":"Intercessão","L":"Liderança","M":"Louvor","N":"Ensino","O":"Misericórdia","P":"Missão","Q":"Pastoreio","R":"Profecia","S":"Profeta","T":"Sabedoria","U":"Serviço","V":"Socorros"};
+const _DON_OMEGA = {"A":"Administração","B":"Apostolado","C":"Discernimento","D":"Evangelismo","E":"Exortação","F":"Fé","G":"Contribuição","H":"Hospitalidade","I":"Conhecimento","J":"Liderança","K":"Misericórdia","L":"Missão","M":"Profecia","N":"Pastoreio","O":"Serviço","P":"Ensino","Q":"Sabedoria","R":"Milagres","S":"Cura","T":"Línguas","U":"Interpretação","V":"Intercessão","W":"Libertação"};
 
 function _calcTotals(ans, map) {
   const t={};
@@ -812,7 +812,7 @@ async function openAudit(code) {
     const alfaAns = Object.keys(res.alfa||{}).length, omegaAns = Object.keys(res.omega||{}).length;
     document.getElementById('audit-content').innerHTML =
       '<div class="audit-section"><div class="audit-section-title">Inventário Alfa — '+alfaAns+'/110 respondidas</div><div class="audit-summary">'+chips(groupsAlfa)+'</div><table class="audit-table"><thead><tr><th>Pos</th><th>Letra(s)</th><th>Dom</th><th>Pts</th><th>Barra</th></tr></thead><tbody>'+tableRows(groupsAlfa,maxA,_DON_ALFA)+'</tbody></table></div>'+
-      '<div class="audit-section"><div class="audit-section-title">Inventário Ômega — '+omegaAns+'/125 respondidas</div><div class="audit-summary">'+chips(groupsOmega)+'</div><table class="audit-table"><thead><tr><th>Pos</th><th>Letra(s)</th><th>Dom</th><th>Pts</th><th>Barra</th></tr></thead><tbody>'+tableRows(groupsOmega,maxO,_DON_OMEGA)+'</tbody></table></div>'+
+      '<div class="audit-section"><div class="audit-section-title">Inventário Ômega — '+omegaAns+'/138 respondidas</div><div class="audit-summary">'+chips(groupsOmega)+'</div><table class="audit-table"><thead><tr><th>Pos</th><th>Letra(s)</th><th>Dom</th><th>Pts</th><th>Barra</th></tr></thead><tbody>'+tableRows(groupsOmega,maxO,_DON_OMEGA)+'</tbody></table></div>'+
       (function(){
         // Full letter audit tables
         const alfaLetters = 'ABCDEFGHIJKLMNOPQRSTUV'.split('');
