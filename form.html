@@ -123,6 +123,8 @@ body{background:var(--black);color:var(--white);font-family:'Inter',sans-serif;f
 .combined-box h3{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;margin-bottom:4px}
 .combined-box p{font-size:13px;color:var(--w50);margin-bottom:16px}
 .top3-row{display:flex;gap:8px;flex-wrap:wrap}
+.logout-btn{width:100%;margin-top:12px;padding:14px;background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:14px;color:rgba(255,255,255,.4);font-size:14px;cursor:pointer;transition:all .2s;letter-spacing:.03em}
+.logout-btn:hover{background:rgba(255,255,255,.05);color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.2)}
 .s-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}
 .s-item:last-child{border-bottom:none}
 .s-rank{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--g2);min-width:28px}
@@ -256,6 +258,8 @@ body{background:var(--black);color:var(--white);font-family:'Inter',sans-serif;f
           </div>
           <span style="font-size:18px;color:rgba(255,255,255,.2)">→</span>
         </button>
+
+        <button class="logout-btn" onclick="logout()">← Sair</button>
       </div>
     </div>
   </div>
@@ -338,6 +342,7 @@ function showView(name) {
 
 function goHome() { updateHomeUI(); showView('home'); currentInv=null; }
 function navBack() { if(currentInv) goHome(); else history.back(); }
+function logout() { location.href='index.html'; }
 
 function openForm(inv) {
   currentInv = inv;
@@ -425,7 +430,7 @@ function updateFormUI(inv) {
   document.getElementById('form-ans-info').textContent=`${n} de ${total} respondidas`;
 }
 
-// ─── SAVE ──────────────────────────────────────────────────────
+// ─── SAVE (otimizado: envia só o inventário atual) ────────────
 async function sendCurrentInv() {
   const btn = document.getElementById('form-send-btn');
   const inv = currentInv;
@@ -437,19 +442,31 @@ async function sendCurrentInv() {
   }
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner"></div> Enviando...';
+
+  // OTM 3: Feedback imediato — salva em background
+  const sendPromise = API.post({
+    action: 'saveAnswers',
+    code: CODE,
+    inv: inv,
+    answers: answers[inv]  // OTM 2: envia só o inventário atual
+  });
+
+  // Mostra sucesso imediato enquanto salva em background
+  btn.innerHTML = '✓ Enviado!';
+  btn.style.background = 'var(--green)';
+
   try {
-    await API.post({action:'saveAnswers', code:CODE, alfa:answers.alfa, omega:answers.omega});
-    btn.innerHTML = '✓ Enviado!';
-    btn.style.background = 'var(--green)';
+    const res = await sendPromise;
+    if (!res.ok) throw new Error(res.error);
     setTimeout(() => {
       btn.disabled = false;
       btn.innerHTML = '💾 Enviar';
       btn.style.background = '';
     }, 2500);
   } catch(e) {
-    btn.disabled = false;
     btn.innerHTML = '⚠ Erro — tentar novamente';
-    setTimeout(() => { btn.innerHTML = '💾 Enviar'; }, 2500);
+    btn.style.background = '';
+    btn.disabled = false;
   }
 }
 
