@@ -344,8 +344,19 @@ function goHome() { updateHomeUI(); showView('home'); currentInv=null; }
 function navBack() { if(currentInv) goHome(); else history.back(); }
 function logout() { location.href='index.html'; }
 
-function openForm(inv) {
+async function openForm(inv) {
   currentInv = inv;
+  // Carrega respostas sob demanda — só na primeira vez
+  if (!answers._loaded) {
+    try {
+      const r = await API.get({action:'getAnswers', code:CODE});
+      if (r.ok) {
+        Object.assign(answers.alfa, r.alfa||{});
+        Object.assign(answers.omega, r.omega||{});
+      }
+    } catch(e) {}
+    answers._loaded = true;
+  }
   renderFormList(inv);
   updateFormUI(inv);
   document.getElementById('form-title').textContent = inv==='alfa' ? 'Inventário Alfa' : 'Inventário Ômega';
@@ -371,8 +382,7 @@ async function boot() {
     if (!res.ok) { alert('Código inválido.'); location.href='index.html'; return; }
     if (res.preenchimentoBloqueado) { alert('⚠️ O preenchimento está bloqueado pelo administrador. Aguarde a liberação.'); location.href='index.html'; return; }
     user = res;
-    Object.assign(answers.alfa, res.alfa||{});
-    Object.assign(answers.omega, res.omega||{});
+    // Respostas carregadas sob demanda ao abrir inventário
     document.getElementById('topbar-name').textContent = user.nome;
     document.getElementById('topbar-code').textContent = CODE;
     document.getElementById('home-nome').textContent = 'Olá, ' + user.nome.split(' ')[0] + '!';
@@ -458,11 +468,13 @@ async function sendCurrentInv() {
   try {
     const res = await sendPromise;
     if (!res.ok) throw new Error(res.error);
+    // Retorna para a tela home após enviar
     setTimeout(() => {
       btn.disabled = false;
       btn.innerHTML = '💾 Enviar';
       btn.style.background = '';
-    }, 2500);
+      goHome();
+    }, 1000);
   } catch(e) {
     btn.innerHTML = '⚠ Erro — tentar novamente';
     btn.style.background = '';
@@ -495,6 +507,17 @@ function calcCombination(topGroupsAlfa, topGroupsOmega) {
 async function renderResult() {
   const el=document.getElementById('result-content');
   el.innerHTML='<div style="text-align:center;padding:40px 0"><div class="spinner-lg" style="margin:0 auto"></div></div>';
+  // Carrega respostas se ainda não carregou
+  if (!answers._loaded) {
+    try {
+      const r = await API.get({action:'getAnswers', code:CODE});
+      if (r.ok) {
+        Object.assign(answers.alfa, r.alfa||{});
+        Object.assign(answers.omega, r.omega||{});
+      }
+    } catch(e) {}
+    answers._loaded = true;
+  }
   try { const r=await API.get({action:'getUser',code:CODE}); if(r.ok) user=r; } catch(e){}
   if (!user.resultadoLiberado) {
     el.innerHTML=`<div class="results-locked"><span class="lock-icon">🔒</span><h3>Resultado em Análise</h3><p>Suas respostas foram salvas. O líder irá liberar seu resultado em breve.</p></div>`;
