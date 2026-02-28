@@ -808,15 +808,15 @@ async function openAudit(code) {
       return '<tr class="'+rank+'"><td><span class="audit-rank">'+rankLabel+'</span></td><td><span class="audit-letter">'+letStr+'</span></td><td style="color:var(--w80);font-size:12px">'+nameStr+'</td><td><span class="audit-pts">'+g.score+'</span></td><td><div class="audit-bar-wrap"><div class="audit-bar" style="width:'+Math.round(g.score/max*100)+'%"></div></div></td></tr>';
     }).join('');
 
-    const chips = (groups) => groups.slice(0,3).map((g,i)=>'<div class="audit-chip"><div class="audit-chip-rank">'+(i+1)+'º lugar</div><div class="audit-chip-letter">'+g.letters.join(' · ')+'</div><div class="audit-chip-name">'+g.letters.map(l=>(DON_NAMES[l]||l)).join(', ')+'</div><div class="audit-chip-pts">'+g.score+' pts</div></div>').join('');
+    const chips = (groups, nameMap) => groups.slice(0,3).map((g,i)=>'<div class="audit-chip"><div class="audit-chip-rank">'+(i+1)+'º lugar</div><div class="audit-chip-letter">'+g.letters.join(' · ')+'</div><div class="audit-chip-name">'+g.letters.map(l=>((nameMap||{})[l]||l)).join(', ')+'</div><div class="audit-chip-pts">'+g.score+' pts</div></div>').join('');
     const alfaAns = Object.keys(res.alfa||{}).length, omegaAns = Object.keys(res.omega||{}).length;
     document.getElementById('audit-content').innerHTML =
-      '<div class="audit-section"><div class="audit-section-title">Inventário Alfa — '+alfaAns+'/110 respondidas</div><div class="audit-summary">'+chips(groupsAlfa)+'</div><table class="audit-table"><thead><tr><th>Pos</th><th>Letra(s)</th><th>Dom</th><th>Pts</th><th>Barra</th></tr></thead><tbody>'+tableRows(groupsAlfa,maxA,_DON_ALFA)+'</tbody></table></div>'+
-      '<div class="audit-section"><div class="audit-section-title">Inventário Ômega — '+omegaAns+'/138 respondidas</div><div class="audit-summary">'+chips(groupsOmega)+'</div><table class="audit-table"><thead><tr><th>Pos</th><th>Letra(s)</th><th>Dom</th><th>Pts</th><th>Barra</th></tr></thead><tbody>'+tableRows(groupsOmega,maxO,_DON_OMEGA)+'</tbody></table></div>'+
+      '<div class="audit-section"><div class="audit-section-title">Inventário Alfa — '+alfaAns+'/110 respondidas</div><div class="audit-summary">'+chips(groupsAlfa,_DON_ALFA)+'</div><table class="audit-table"><thead><tr><th>Pos</th><th>Letra(s)</th><th>Dom</th><th>Pts</th><th>Barra</th></tr></thead><tbody>'+tableRows(groupsAlfa,maxA,_DON_ALFA)+'</tbody></table></div>'+
+      '<div class="audit-section"><div class="audit-section-title">Inventário Ômega — '+omegaAns+'/138 respondidas</div><div class="audit-summary">'+chips(groupsOmega,_DON_OMEGA)+'</div><table class="audit-table"><thead><tr><th>Pos</th><th>Letra(s)</th><th>Dom</th><th>Pts</th><th>Barra</th></tr></thead><tbody>'+tableRows(groupsOmega,maxO,_DON_OMEGA)+'</tbody></table></div>'+
       (function(){
         // Full letter audit tables
         const alfaLetters = 'ABCDEFGHIJKLMNOPQRSTUV'.split('');
-        const omegaLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXY'.split('');
+        const omegaLetters = 'ABCDEFGHIJKLMNOPQRSTUVW'.split('');
         const allAlfaTotals = _calcTotals(res.alfa||{}, _ALFA_MAP);
         const allOmegaTotals = _calcTotals(res.omega||{}, _OMEGA_MAP);
         const maxAlfaAll = Math.max(...alfaLetters.map(l=>allAlfaTotals[l]||0),1);
