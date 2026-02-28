@@ -355,6 +355,13 @@ async function openForm(inv) {
         Object.assign(answers.omega, r.omega||{});
       }
     } catch(e) {}
+    // Mescla com respostas salvas localmente (podem ser mais recentes)
+    try {
+      const la = localStorage.getItem('dons_'+CODE+'_alfa');
+      const lo = localStorage.getItem('dons_'+CODE+'_omega');
+      if(la) Object.assign(answers.alfa, JSON.parse(la));
+      if(lo) Object.assign(answers.omega, JSON.parse(lo));
+    } catch(e) {}
     answers._loaded = true;
   }
   renderFormList(inv);
@@ -413,6 +420,8 @@ function pick(inv, num, val) {
   document.querySelectorAll(`#qi-${inv}-${num} .score-btn`).forEach((b,i)=>b.classList.toggle('sel',i===val));
   document.getElementById(`qi-${inv}-${num}`).classList.add('answered');
   updateHomeUI(); updateFormUI(inv);
+  // Salva localmente para não perder em caso de queda
+  try { localStorage.setItem('dons_'+CODE+'_'+inv, JSON.stringify(answers[inv])); } catch(e){}
 }
 
 // ─── UI ────────────────────────────────────────────────────────
@@ -468,6 +477,8 @@ async function sendCurrentInv() {
   try {
     const res = await sendPromise;
     if (!res.ok) throw new Error(res.error);
+    // Limpa cache local após envio confirmado
+    try { localStorage.removeItem('dons_'+CODE+'_'+inv); } catch(e){}
     // Retorna para a tela home após enviar
     setTimeout(() => {
       btn.disabled = false;
