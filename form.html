@@ -343,6 +343,26 @@ function showView(name) {
 function goHome() { updateHomeUI(); showView('home'); currentInv=null; }
 function navBack() { if(currentInv) goHome(); else history.back(); }
 function logout() { location.href='index.html'; }
+async function downloadResult() {
+  const el = document.getElementById('result-content');
+  if (!el) return;
+  // Use html2canvas via CDN
+  if (!window.html2canvas) {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    document.head.appendChild(s);
+    await new Promise(r => s.onload = r);
+  }
+  const canvas = await html2canvas(el, {
+    backgroundColor: '#0d1117',
+    scale: 2,
+    useCORS: true
+  });
+  const link = document.createElement('a');
+  link.download = 'resultado-dons-' + CODE + '.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
 
 async function openForm(inv) {
   currentInv = inv;
@@ -370,6 +390,7 @@ async function openForm(inv) {
   document.getElementById('form-next-btn').textContent = inv==='alfa' ? 'Ir para Ômega →' : 'Ver Resultado →';
   document.getElementById('form-questions').scrollTop = 0;
   showView('form');
+  if (window._READONLY) { const btn=document.getElementById('form-send-btn'); if(btn){btn.style.display='none';} }
 }
 
 async function formNext() {
@@ -387,7 +408,13 @@ async function boot() {
   try {
     const res = await API.get({ action:'getUser', code:CODE });
     if (!res.ok) { alert('Código inválido.'); location.href='index.html'; return; }
-    if (res.preenchimentoBloqueado) { alert('⚠️ O preenchimento está bloqueado pelo administrador. Aguarde a liberação.'); location.href='index.html'; return; }
+    // Verifica bloqueio geral (modo somente leitura)
+    const cfgGeral = await API.get({action:'getBloqueioGeral'}).catch(()=>({bloqueado:false}));
+    if (cfgGeral.bloqueado) {
+      // Modo somente leitura: esconde botão enviar, desabilita picks
+      window._READONLY = true;
+    }
+    if (res.preenchimentoBloqueado && !window._READONLY) { alert('⚠️ O preenchimento está bloqueado pelo administrador. Aguarde a liberação.'); location.href='index.html'; return; }
     user = res;
     // Respostas carregadas sob demanda ao abrir inventário
     document.getElementById('topbar-name').textContent = user.nome;
@@ -416,6 +443,7 @@ function renderFormList(inv) {
 
 // ─── PICK ──────────────────────────────────────────────────────
 function pick(inv, num, val) {
+  if (window._READONLY) return; // modo somente leitura
   answers[inv][num]=val;
   document.querySelectorAll(`#qi-${inv}-${num} .score-btn`).forEach((b,i)=>b.classList.toggle('sel',i===val));
   document.getElementById(`qi-${inv}-${num}`).classList.add('answered');
@@ -566,7 +594,8 @@ async function renderResult() {
       <div class="comb-section"><div class="comb-label">⭐ Dons Primários</div><div class="comb-chips">${primaryHtml}</div></div>
       ${combResult.secondary.length?`<div class="comb-section"><div class="comb-label">✦ Dons Secundários</div><div class="comb-chips">${secondaryHtml}</div></div>`:''}
     </div>
-    <p style="font-size:13px;color:rgba(255,255,255,.4);text-align:center;line-height:1.65;padding:0 8px 8px">Converse com seu líder sobre como desenvolver estes dons no ministério.</p>`;
+    <p style="font-size:13px;color:rgba(255,255,255,.4);text-align:center;line-height:1.65;padding:0 8px 8px">Converse com seu líder sobre como desenvolver estes dons no ministério.</p>
+    <button onclick="downloadResult()" style="width:100%;margin-top:16px;padding:14px;background:rgba(0,185,173,.15);border:1px solid rgba(0,185,173,.3);border-radius:14px;color:#00b9ad;font-size:14px;cursor:pointer;font-weight:600">📥 Baixar resultado como imagem</button>\`;
 }
 
 // ─── CLEAR ─────────────────────────────────────────────────────
