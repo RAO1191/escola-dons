@@ -890,8 +890,7 @@ async function exportExcel() {
     // Build CSV with BOM for Excel
     const cols = ['Código','Nome','Alfa 1º','Alfa 2º','Alfa 3º','Ômega 1º','Ômega 2º','Ômega 3º','Dons Primários','Dons Secundários'];
     const rows = r.rows.map(x=>[x.codigo,x.nome,x.alfa1,x.alfa2,x.alfa3,x.omega1,x.omega2,x.omega3,x.primarios,x.secundarios]);
-    const csv = '﻿' + [cols,...rows].map(r=>r.map(c=>'"'+(c||'').toString().replace(/"/g,'""')+'"').join(';')).join('
-');
+    const csv = '\uFEFF' + [cols,...rows].map(r=>r.map(c=>'"'+(c||'').toString().replace(/"/g,'""')+'"').join(';')).join('\n');
     const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
     const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
     a.download = 'escola-dons-relatorio.csv'; a.click();
