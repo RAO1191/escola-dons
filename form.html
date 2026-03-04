@@ -411,17 +411,26 @@ async function boot() {
     // Verifica bloqueio geral (modo somente leitura)
     const cfgGeral = await API.get({action:'getBloqueioGeral'}).catch(()=>({bloqueado:false}));
     if (cfgGeral.bloqueado) {
-      // Modo somente leitura: esconde botão enviar, desabilita picks
       window._READONLY = true;
     }
     if (res.preenchimentoBloqueado && !window._READONLY) { alert('⚠️ O preenchimento está bloqueado pelo administrador. Aguarde a liberação.'); location.href='index.html'; return; }
     user = res;
-    // Respostas carregadas sob demanda ao abrir inventário
     document.getElementById('topbar-name').textContent = user.nome;
     document.getElementById('topbar-code').textContent = CODE;
     document.getElementById('home-nome').textContent = 'Olá, ' + user.nome.split(' ')[0] + '!';
     updateHomeUI();
-    showView('home');
+    // Modo somente leitura: vai direto para o resultado
+    if (window._READONLY) {
+      document.getElementById('loading').style.display='none';
+      showView('home');
+      // Desabilita clique nos cards de inventário
+      document.querySelectorAll('.inv-card').forEach(c=>{
+        c.style.opacity='0.5';
+        c.style.pointerEvents='none';
+      });
+    } else {
+      showView('home');
+    }
     document.getElementById('loading').style.display='none';
   } catch(e) { alert('Erro de conexão. Recarregue a página.'); }
 }
