@@ -865,12 +865,17 @@ let _bloqueioAtual = false;
 async function loadBloqueioGeral() {
   try {
     const r = await API.get({action:'getBloqueioGeral'});
-    _bloqueioAtual = r.bloqueado;
-    document.getElementById('bloqueio-status').textContent = r.bloqueado ? '🔴 ATIVADO — novos cadastros bloqueados, usuários em modo leitura' : '🟢 Desativado — sistema aberto';
+    _bloqueioAtual = r.ok ? r.bloqueado : false;
+    document.getElementById('bloqueio-status').textContent = _bloqueioAtual ? '🔴 ATIVADO — novos cadastros bloqueados, usuários em modo leitura' : '🟢 Desativado — sistema aberto';
     const btn = document.getElementById('bloqueio-btn');
-    btn.textContent = r.bloqueado ? '✅ Desbloquear sistema' : '🔒 Bloquear sistema';
-    btn.className = r.bloqueado ? 'btn btn-green btn-sm' : 'btn btn-red btn-sm';
-  } catch(e) {}
+    btn.textContent = _bloqueioAtual ? '✅ Desbloquear sistema' : '🔒 Bloquear sistema';
+    btn.className = _bloqueioAtual ? 'btn btn-green btn-sm' : 'btn btn-red btn-sm';
+  } catch(e) {
+    document.getElementById('bloqueio-status').textContent = '🟢 Desativado — sistema aberto';
+    const btn = document.getElementById('bloqueio-btn');
+    btn.textContent = '🔒 Bloquear sistema';
+    btn.className = 'btn btn-red btn-sm';
+  }
 }
 async function toggleBloqueioGeral() {
   if (!confirm(_bloqueioAtual ? 'Desbloquear o sistema para todos?' : 'Bloquear novos cadastros e colocar todos em modo somente leitura?')) return;
