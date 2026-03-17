@@ -441,9 +441,12 @@ function getRankingData(senha) {
       combRank[n].push({code:code,nome:nomeMap[code],pts:ptA+ptO});
     });
   });
-  [alfaRank,omegaRank,combRank].forEach(function(rank){
+  // alfaRank e omegaRank: top 10 para o modal de Ranking
+  [alfaRank,omegaRank].forEach(function(rank){
     Object.keys(rank).forEach(function(k){rank[k].sort(function(a,b){return b.pts-a.pts;});rank[k]=rank[k].slice(0,10);});
   });
+  // combRank: sem limite — usado pelo Relatório por Dons que mostra todos
+  Object.keys(combRank).forEach(function(k){combRank[k].sort(function(a,b){return b.pts-a.pts;});});
   return {ok:true, alfa:alfaRank, omega:omegaRank, cruzamento:combRank, donAlfa:DON_ALFA, donOmega:DON_OMEGA};
 }
 

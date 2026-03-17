@@ -78,7 +78,7 @@ body{background:var(--black);color:var(--white);font-family:'Inter',sans-serif;f
 .dons-chart{background:var(--black2);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:18px}
 .don-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
 .don-row:last-child{border-bottom:none}
-.don-letter{font-family:'Bebas Neue',sans-serif;font-size:22px;min-width:26px;text-align:center;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.don-letter{font-family:'Bebas Neue',sans-serif;font-size:22px;min-width:26px;text-align:center;color:var(--g2)}
 .don-name{flex:1;font-size:13px;color:var(--w80);min-width:0}
 .don-count{font-size:13px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;min-width:28px;text-align:right}
 .don-bar-wrap{width:110px;height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;flex-shrink:0}
@@ -96,7 +96,8 @@ body{background:var(--black);color:var(--white);font-family:'Inter',sans-serif;f
 .search-inp{flex:1;min-width:160px;background:var(--w06);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--white);font-family:'Inter',sans-serif;font-size:14px;outline:none;transition:border-color .2s;-webkit-appearance:none}
 .search-inp:focus{border-color:var(--g2)}
 .search-inp::placeholder{color:rgba(255,255,255,.22)}
-.filter-sel{background:var(--w06);border:1px solid var(--border);border-radius:10px;padding:10px 13px;color:var(--w50);font-family:'Inter',sans-serif;font-size:13px;outline:none;cursor:pointer;-webkit-appearance:none}
+.filter-sel{background:var(--black3);border:1px solid var(--border);border-radius:10px;padding:10px 13px;color:#fff;font-family:'Inter',sans-serif;font-size:13px;outline:none;cursor:pointer;-webkit-appearance:none}
+.filter-sel option{background:#1a1a1a;color:#fff}
 .people-list{display:flex;flex-direction:column;gap:8px}
 .pcard{background:var(--black2);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:border-color .2s}
 .pcard.sel{border-color:rgba(0,185,173,.4)}
@@ -516,44 +517,33 @@ function renderDons(donCount, cid, full) {
 async function loadFullDons() {
   document.getElementById('full-dons').innerHTML='<div class="loading-row"><div class="spinner-lg"></div> Carregando...</div>';
   try{
-    const res=await API.get({action:'getAllUsers',senha:adminPass});
-    if(res.ok) allUsers=res.users;
+    const res=await API.get({action:'getRankingData',senha:adminPass});
+    if(res.ok) _donsData=res.cruzamento;
     renderFullDons();
   }catch(e){document.getElementById('full-dons').innerHTML='<p style="color:var(--red);font-size:14px">Erro ao carregar.</p>';}
 }
 
-function buildDonPeopleMap(){
-  const map={};
-  allUsers.forEach(u=>{
-    [u.don1,u.don2,u.don3].filter(Boolean).forEach(letter=>{
-      if(!map[letter]) map[letter]=[];
-      map[letter].push(u);
-    });
-  });
-  return map;
-}
-
 function renderFullDons(){
   const el=document.getElementById('full-dons');
-  const donPeopleMap=buildDonPeopleMap();
-  const sorted=Object.entries(donPeopleMap).sort((a,b)=>b[1].length-a[1].length);
+  const data=_donsData||{};
+  const sorted=Object.entries(data).sort((a,b)=>b[1].length-a[1].length);
   const max=sorted[0]?.[1].length||1;
   if(!sorted.length){
     el.innerHTML='<p style="color:var(--w50);font-size:14px;padding:18px 0">Nenhuma resposta ainda.</p>';
     return;
   }
-  el.innerHTML=`<div class="dons-chart">${sorted.map(([l,users])=>{
-    const n=users.length;
-    const chips=users.map(u=>`<span class="don-person-chip">${u.nome}</span>`).join('');
+  el.innerHTML=`<div class="dons-chart">${sorted.map(([donName,people])=>{
+    const n=people.length;
+    const key=donName.replace(/\s+/g,'_');
+    const chips=people.map(p=>`<span class="don-person-chip">${p.nome}</span>`).join('');
     return `<div class="don-row-wrap">
-      <div class="don-row" onclick="toggleDonPeople('${l}')">
-        <span class="don-letter">${l}</span>
-        <span class="don-name">${DON_NAMES[l]||l}</span>
+      <div class="don-row" onclick="toggleDonPeople('${key}')">
+        <span class="don-name">${donName}</span>
         <div class="don-bar-wrap"><div class="don-bar" style="width:${Math.round(n/max*100)}%"></div></div>
         <span class="don-count">${n}</span>
-        <span class="don-chevron" id="donchev-${l}">▶</span>
+        <span class="don-chevron" id="donchev-${key}">▶</span>
       </div>
-      <div class="don-people" id="donpeople-${l}" style="display:none">
+      <div class="don-people" id="donpeople-${key}" style="display:none">
         <div style="font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--w50);margin-bottom:8px">${n} pessoa${n!==1?'s':''}</div>
         <div>${chips}</div>
       </div>
@@ -571,15 +561,13 @@ function toggleDonPeople(l){
 }
 
 function exportDonsReport(){
-  if(!allUsers.length){showToast('Carregue os dados primeiro.');return}
-  const donPeopleMap=buildDonPeopleMap();
-  const sorted=Object.entries(donPeopleMap).sort((a,b)=>b[1].length-a[1].length);
-  const cols=['Dom','Letra','Quantidade','Pessoas'];
-  const rows=sorted.map(([l,users])=>[
-    DON_NAMES[l]||l,
-    l,
-    users.length,
-    users.map(u=>u.nome).join('; ')
+  if(!_donsData){showToast('Carregue os dados primeiro.');return}
+  const sorted=Object.entries(_donsData).sort((a,b)=>b[1].length-a[1].length);
+  const cols=['Dom','Quantidade','Pessoas'];
+  const rows=sorted.map(([donName,people])=>[
+    donName,
+    people.length,
+    people.map(p=>p.nome).join('; ')
   ]);
   const csv=String.fromCharCode(65279)+[cols,...rows].map(r=>r.map(c=>'"'+(c||'').toString().replace(/"/g,'""')+'"').join(';')).join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
@@ -1014,6 +1002,7 @@ async function exportExcel() {
 // ── RANKING ──────────────────────────────────────────────────
 let _rankData = null;
 let _rankTab = 'alfa';
+let _donsData = null;
 async function openRanking() {
   document.getElementById('modal-ranking').classList.add('open');
   document.getElementById('ranking-content').innerHTML = '<div class="loading-row"><div class="spinner-lg"></div> Carregando...</div>';
