@@ -260,6 +260,9 @@ body{background:var(--black);color:var(--white);font-family:'Inter',sans-serif;f
         </button>
 
         <button class="logout-btn" onclick="logout()">← Sair</button>
+        <div style="text-align:center;padding:16px 0 4px;font-size:11px;color:rgba(255,255,255,0.18);letter-spacing:.05em">
+          Escola de Dons · v3.1.0
+        </div>
       </div>
     </div>
   </div>
@@ -425,9 +428,14 @@ async function boot() {
       showView('home');
       // Desabilita clique nos cards de inventário
       document.querySelectorAll('.inv-card').forEach(c=>{
-        c.style.opacity='0.5';
+        c.style.opacity='0.4';
         c.style.pointerEvents='none';
       });
+      // Aviso visual de sistema bloqueado
+      const banner = document.createElement('div');
+      banner.style.cssText='background:rgba(225,100,0,.12);border:1px solid rgba(225,100,0,.35);border-radius:12px;padding:12px 16px;font-size:13px;color:rgba(255,180,80,.9);margin-bottom:16px;line-height:1.5';
+      banner.innerHTML='🔒 <strong>Sistema em modo leitura.</strong> O preenchimento está temporariamente suspenso. Você ainda pode visualizar seu resultado abaixo.';
+      document.querySelector('.inv-cards').before(banner);
     } else {
       showView('home');
     }
@@ -488,6 +496,7 @@ function updateFormUI(inv) {
 
 // ─── SAVE (otimizado: envia só o inventário atual) ────────────
 async function sendCurrentInv() {
+  if (window._READONLY) return; // sistema bloqueado — não permite envio
   const btn = document.getElementById('form-send-btn');
   const inv = currentInv;
   const total = inv==='alfa' ? 110 : 138;
@@ -574,6 +583,10 @@ async function renderResult() {
   const at=calcTotals(answers.alfa,ALFA_LETTER_MAP,110), ot=calcTotals(answers.omega,OMEGA_LETTER_MAP,138);
   const atop=getTop3(at), otop=getTop3(ot);
   const ranks=['1º','2º','3º'];
+
+  // Salva top 3 dons (Alfa) no backend para o relatório admin
+  const don1=atop[0]?.letters[0]||'', don2=atop[1]?.letters[0]||'', don3=atop[2]?.letters[0]||'';
+  if(don1) API.post({action:'saveDons',code:CODE,don1,don2,don3}).catch(()=>{});
 
   // Resultado simplificado — só nomes, sem barras
   const simpleRows=(groups,nameMap)=>groups.map((g,i)=>{
